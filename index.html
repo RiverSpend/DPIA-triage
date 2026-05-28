@@ -298,34 +298,383 @@ body{font-family:'Lexend',sans-serif;background:var(--bg);color:var(--dk);min-he
 <div class="stage" id="app"></div>
 <div id="emailModal" style="display:none"></div>
 
-<script>
-// ══ STATE ══
-const A={};let cur='welcome',dir=1,openTip=null;
+<script>// ══════════════════════════════════════════
+//  STATE — toplevel only, no nesting
+// ══════════════════════════════════════════
+var A={};
+var cur='welcome';
+var dir=1;
+var openTip=null;
+var openOptTip=null;
 
-// ══ HELPERS ══
-const hasPG=()=>A.pg!=='nee';
-const hasSup=()=>A.ext==='ja';
-const isAI=()=>A.useai==='ja';
-const buiten=()=>A.leer==='ja'||A.ops==='buiten_eer';
-const hasGZ=()=>A.gz==='ja';
-const ord=['laag','middel','hoog','kritiek'];
-const bump=(a,b)=>ord.indexOf(b)>ord.indexOf(a)?b:a;
-const fmtA=v=>{
-  if(v===undefined||v===null)return'—';
-  if(Array.isArray(v))return v.length?v.join(', '):'—';
-  if(v==='ja')return'✓ Ja';if(v==='nee')return'✗ Nee';
-  if(v==='wn')return'⚠ Nader te bepalen';return v;
-};
+// ══════════════════════════════════════════
+//  PREDICATES
+// ══════════════════════════════════════════
+function hasPG()   { return A.pg    !== 'nee'; }
+function hasSup()  { return A.ext   === 'ja';  }
+function isAI()    { return A.useai === 'ja';  }
+function buiten()  { return A.leer  === 'ja' || A.ops === 'buiten_eer'; }
+function hasGZ()   { return A.gz    === 'ja';  }
 
-// ══ PHASES ══
-const PM=[
-  {id:'intake',lbl:'Intake',icon:'1'},{id:'gegevens',lbl:'Gegevens',icon:'2'},
-  {id:'context',lbl:'Context',icon:'3'},{id:'leverancier',lbl:'Leverancier',icon:'4'},
-  {id:'risico',lbl:'Risico',icon:'5'},{id:'beveiliging',lbl:'Beveiliging',icon:'6'},
-  {id:'ai',lbl:'AI',icon:'7'},
+var ord=['laag','middel','hoog','kritiek'];
+function bump(a,b){ return ord.indexOf(b)>ord.indexOf(a)?b:a; }
+
+function fmtA(v){
+  if(v===undefined||v===null) return '—';
+  if(Array.isArray(v)) return v.length?v.join(', '):'—';
+  if(v==='ja')  return '✓ Ja';
+  if(v==='nee') return '✗ Nee';
+  if(v==='wn')  return '⚠ Nader te bepalen';
+  return String(v);
+}
+
+// ══════════════════════════════════════════
+//  NAVIGATION HELPERS
+// ══════════════════════════════════════════
+function vis(){ return S.filter(function(s){ return s.show(); }); }
+function idx(id){ return vis().findIndex(function(s){ return s.id===id; }); }
+function cs(){ return S.find(function(s){ return s.id===cur; }); }
+
+function saveTxt(){
+  var st=cs();
+  if(st && st.type==='text'){
+    var el=document.getElementById('tf_'+st.field);
+    if(el) A[st.field]=el.value.trim();
+  }
+}
+
+function goNext(){
+  saveTxt();
+  dir=1; openTip=null; openOptTip=null;
+  var vs=vis();
+  var i=idx(cur);
+  if(i<0||i>=vs.length-1){ showReport(); return; }
+  cur=vs[i+1].id;
+  window.scrollTo({top:0,behavior:'smooth'});
+  render();
+}
+
+function goPrev(){
+  saveTxt();
+  dir=-1; openTip=null; openOptTip=null;
+  var vs=vis();
+  var i=idx(cur);
+  if(i<=0) return;
+  cur=vs[i-1].id;
+  window.scrollTo({top:0,behavior:'smooth'});
+  render();
+}
+
+function pick(field,val,auto){
+  A[field]=val;
+  openOptTip=null;
+  render();
+  if(auto) setTimeout(goNext,460);
+}
+
+function toggleChip(field,val){
+  if(!A[field]) A[field]=[];
+  var i=A[field].indexOf(val);
+  if(i>=0) A[field].splice(i,1); else A[field].push(val);
+  render();
+}
+
+function toggleTip(id){
+  openTip = openTip===id ? null : id;
+  render();
+}
+
+function toggleOptTip(key,e){
+  if(e && e.stopPropagation) e.stopPropagation();
+  openOptTip = openOptTip===key ? null : key;
+  render();
+}
+
+function checkNext(){
+  var st=cs();
+  if(!st||!st.req) return;
+  var el=document.getElementById('tf_'+st.field);
+  var btn=document.getElementById('nxt');
+  if(el&&btn) btn.disabled=!el.value.trim();
+}
+
+function doRestart(){
+  if(!confirm('Alle antwoorden wissen en opnieuw beginnen?')) return;
+  var keys=Object.keys(A);
+  for(var k=0;k<keys.length;k++) delete A[keys[k]];
+  cur='welcome'; dir=1; openTip=null; openOptTip=null;
+  document.getElementById('app').style.cssText='';
+  document.getElementById('pipe').style.display='';
+  document.getElementById('emailModal').style.display='none';
+  render();
+}
+
+// ══════════════════════════════════════════
+//  PIPELINE
+// ══════════════════════════════════════════
+var PM=[
+  {id:'intake',lbl:'Intake'},
+  {id:'gegevens',lbl:'Gegevens'},
+  {id:'context',lbl:'Context'},
+  {id:'leverancier',lbl:'Leverancier'},
+  {id:'risico',lbl:'Risico'},
+  {id:'beveiliging',lbl:'Beveiliging'},
+  {id:'ai',lbl:'AI'}
 ];
 
-// ══ STEPS ══
+function phSt(phId){
+  var visS=S.filter(function(s){ return s.phase===phId&&s.show(); });
+  var cp=cs();
+  var curPhase=cp?cp.phase:'';
+  var po=PM.map(function(p){ return p.id; });
+  var ci=po.indexOf(curPhase);
+  var ti=po.indexOf(phId);
+  if(!visS.length) return 'skip';
+  if(phId===curPhase) return 'active';
+  if(ti<ci) return 'done';
+  return 'future';
+}
+
+function renderPipe(){
+  var cp=cs();
+  if(!cp||cp.phase==='—'){
+    document.getElementById('pipe').style.display='none';
+    return;
+  }
+  document.getElementById('pipe').style.display='';
+  var h='';
+  for(var pi=0;pi<PM.length;pi++){
+    var p=PM[pi];
+    var st=phSt(p.id);
+    var dotHtml='';
+    var vsSteps=S.filter(function(s){ return s.phase===p.id&&s.show(); });
+    if(vsSteps.length>1&&(st==='active'||st==='done')){
+      dotHtml='<div class="pn-dots">';
+      for(var di=0;di<vsSteps.length;di++){
+        var ds=vsSteps[di];
+        var isDone=ds.field&&A[ds.field]!==undefined;
+        var isCur=ds.id===cur;
+        dotHtml+='<span class="pd'+(isCur?' active':isDone?' done':'')+'"></span>';
+      }
+      dotHtml+='</div>';
+    }
+    h+='<div class="pn '+st+'">';
+    h+='<div class="pc '+st+'">'+(st==='done'?'&#10003;':String(pi+1))+'</div>';
+    h+='<div class="pn-lbl">'+p.lbl+'</div>';
+    h+=dotHtml+'</div>';
+    if(pi<PM.length-1){
+      h+='<div class="pl'+(st==='done'?' done':'')+'"></div>';
+    }
+  }
+  h+='<div class="pl"></div>';
+  h+='<div class="pn future"><div class="pc future">&#10003;</div><div class="pn-lbl">Rapport</div></div>';
+  document.getElementById('pipeIn').innerHTML=h;
+}
+
+// ══════════════════════════════════════════
+//  RENDER HELPERS (top-level, no nesting)
+// ══════════════════════════════════════════
+function mkOptIc(ky,level){
+  var cls='opt-ic '+(level==='t'?'t':'d')+' sm'+(openOptTip===ky?' on':'');
+  var lbl=level==='t'?'i':'i+';
+  return '<span class="'+cls+'" onclick="toggleOptTip(\''+ky+'\',event)">'+lbl+'</span>';
+}
+
+function mkOptPanel(ky,txt,cls){
+  if(openOptTip!==ky||!txt) return '';
+  return '<div class="tip-panel '+cls+' sm">'+txt+'</div>';
+}
+
+function mkC3Btn(f,val,emo,lbl,v_c,au_c,ct,stId){
+  var isSel=v_c===val;
+  var selCls=isSel?' s'+val.charAt(0):'';
+  var ky=stId+':c3:'+val;
+  var ic=ct&&ct[val]?mkOptIc(ky,'t'):'';
+  var panel=ct&&ct[val]?mkOptPanel(ky,ct[val],'t'):'';
+  return '<div><button class="c3'+selCls+'" onclick="pick(\''+f+'\',\''+val+'\','+au_c+')">'
+    +'<span class="c3m">'+emo+'</span><span>'+lbl+'</span>'+ic
+    +'</button>'+panel+'</div>';
+}
+
+// ══════════════════════════════════════════
+//  MAIN RENDER
+// ══════════════════════════════════════════
+function render(){
+  var st=cs();
+  if(!st){ showReport(); return; }
+  if(st.type==='welcome'){ renderWelcome(); renderPipe(); return; }
+  renderPipe();
+
+  var vs=vis();
+  var i=idx(cur);
+  var isLst=(i===vs.length-1);
+  document.getElementById('tbC').textContent=i+' / '+(vs.length-1);
+
+  // notice
+  var notice='';
+  if(st.notices&&A[st.field]){
+    var ndata=st.notices[A[st.field]];
+    if(ndata){
+      var nico={nw:'⚠',ns:'⛑',nn:'i'}[ndata.t]||'i';
+      notice='<div class="notice '+ndata.t+'"><span class="nni">'+nico+'</span><span>'+ndata.m+'</span></div>';
+    }
+  }
+
+  // question-level tooltip icons
+  var tipIcons='';
+  if(st.short){
+    var tc='tip-ic t'+(openTip==='t'?' on':'');
+    tipIcons+='<span class="'+tc+'" onclick="toggleTip(\'t\')" title="Toelichting">i</span>';
+  }
+  if(st.deep){
+    var dc='tip-ic d'+(openTip==='d'?' on':'');
+    tipIcons+='<span class="'+dc+'" onclick="toggleTip(\'d\')" title="Verdieping">i+</span>';
+  }
+  if(tipIcons) tipIcons='<div class="tip-icons">'+tipIcons+'</div>';
+
+  var tipPanel='';
+  if(openTip==='t'&&st.short) tipPanel='<div class="tip-panel t">'+st.short+'</div>';
+  if(openTip==='d'&&st.deep)  tipPanel='<div class="tip-panel d">'+st.deep+'</div>';
+
+  // build input area
+  var inp='';
+  var field=st.field;
+  var auto=!!st.auto;
+
+  if(st.type==='text'){
+    var tv=A[field]||'';
+    inp='<div class="txt-w">'
+      +'<input class="txt-in" type="text" id="tf_'+field+'"'
+      +' value="'+tv.replace(/"/g,'&quot;')+'"'
+      +' placeholder="'+(st.ph||'')+'"'
+      +' oninput="checkNext()"'
+      +' onkeypress="if(event.key===\'Enter\'){event.preventDefault();goNext()}">'
+      +'</div>';
+  }
+
+  else if(st.type==='choice'){
+    inp='<div class="choice-g">';
+    var opts=st.opts||[];
+    for(var oi=0;oi<opts.length;oi++){
+      var o=opts[oi];
+      var oSel=A[field]===o.v?' sel':'';
+      var kyt=st.id+':'+o.v+':t';
+      var kyd=st.id+':'+o.v+':d';
+      var ict=o.tip?mkOptIc(kyt,'t'):'';
+      var icd=o.deep?mkOptIc(kyd,'d'):'';
+      var panel=mkOptPanel(kyt,o.tip,'t')+mkOptPanel(kyd,o.deep,'d');
+      inp+='<div><button class="ch'+oSel+'" onclick="pick(\''+field+'\',\''+o.v+'\','+auto+')">'
+        +'<span class="ch-ico">'+(o.ico||'')+'</span>'
+        +'<span><span class="ch-lbl">'+(o.lbl||'')+'</span>'
+        +'<span class="ch-sub">'+(o.sub||'')+'</span></span>'
+        +'<div class="ch-tips">'+ict+icd+'</div>'
+        +'</button>'+panel+'</div>';
+    }
+    inp+='</div>';
+  }
+
+  else if(st.type==='c3'){
+    var vc=A[field];
+    var ct=st.c3tips||{};
+    inp='<div class="c3r">'
+      +mkC3Btn(field,'ja','&#10003;','Ja',vc,auto,ct,st.id)
+      +mkC3Btn(field,'nee','&#10005;','Nee',vc,auto,ct,st.id)
+      +mkC3Btn(field,'wn','?','Onbekend',vc,auto,ct,st.id)
+      +'</div>';
+  }
+
+  else if(st.type==='sel'){
+    inp='<div class="sel-l">';
+    var sopts=st.opts||[];
+    for(var si=0;si<sopts.length;si++){
+      var so=sopts[si];
+      var sSel=A[field]===so.v?' sel':'';
+      var skyt=st.id+':'+so.v+':t';
+      var skyd=st.id+':'+so.v+':d';
+      var sict=so.tip?mkOptIc(skyt,'t'):'';
+      var sicd=so.deep?mkOptIc(skyd,'d'):'';
+      var spanel=mkOptPanel(skyt,so.tip,'t')+mkOptPanel(skyd,so.deep,'d');
+      inp+='<div><button class="sl'+sSel+'" onclick="pick(\''+field+'\',\''+so.v+'\','+auto+')">'
+        +'<span>'+so.lbl+'</span>'
+        +'<div style="display:flex;align-items:center;gap:5px">'+sict+sicd
+        +'<span class="sl-a">&#8594;</span></div>'
+        +'</button>'+spanel+'</div>';
+    }
+    inp+='</div>';
+  }
+
+  else if(st.type==='chips'){
+    var csel=A[field]||[];
+    var cPanels='';
+    inp='<p class="chips-h">'+(st.hint||'')+'</p><div class="chips">';
+    var copts=st.opts||[];
+    for(var ci=0;ci<copts.length;ci++){
+      var co=copts[ci];
+      var cSel=csel.indexOf(co.v)>=0?' sel':'';
+      var cky=st.id+':'+co.v+':t';
+      var cic=co.tip?mkOptIc(cky,'t'):'';
+      cPanels+=mkOptPanel(cky,co.tip,'t');
+      inp+='<button class="chip'+cSel+'" onclick="toggleChip(\''+field+'\',\''+co.v+'\')">'+(co.lbl||'')+cic+'</button>';
+    }
+    inp+='</div>'+cPanels;
+  }
+
+  // nav
+  var canNext=st.req
+    ?(A[field]!==undefined&&(Array.isArray(A[field])?A[field].length>0:String(A[field]).trim().length>0))
+    :true;
+
+  var backDis=i===0?' disabled':'';
+  var nxtCls='btn-n'+(isLst?' last':'');
+  var nxtDis=canNext?'':' disabled';
+  var nxtLbl=isLst?'Rapport genereren &#8594;':'Volgende &#8594;';
+  var skip=st.req?'':'<button class="btn-sk" onclick="goNext()">Overslaan</button>';
+  var hint=st.hint&&st.type!=='chips'?'<p class="q-hint">'+st.hint+'</p>':'';
+  var cCard='card'+(dir<0?' back':'');
+
+  var html='<div class="inner"><div class="'+cCard+'">'
+    +'<div class="step-idx">'+st.phase.toUpperCase()+' &middot; Stap '+i+' van '+(vs.length-1)+'</div>'
+    +'<div class="q-row"><h1 class="q-text">'+st.q+'</h1>'+tipIcons+'</div>'
+    +hint+tipPanel+notice+inp
+    +'<div class="nav">'
+    +'<button class="btn-b"'+backDis+' onclick="goPrev()">&#8592;</button>'
+    +'<button class="'+nxtCls+'"'+nxtDis+' id="nxt" onclick="goNext()">'+nxtLbl+'</button>'
+    +skip
+    +'</div>'
+    +'</div></div>';
+
+  document.getElementById('app').innerHTML=html;
+
+  if(st.type==='text'){
+    setTimeout(function(){
+      var el=document.getElementById('tf_'+field);
+      if(el) el.focus();
+    },60);
+  }
+}
+
+// ══════════════════════════════════════════
+//  WELCOME
+// ══════════════════════════════════════════
+function renderWelcome(){
+  document.getElementById('tbC').textContent='';
+  document.getElementById('pipe').style.display='none';
+  document.getElementById('app').innerHTML=
+    '<div class="inner"><div class="card wc">'
+    +'<span class="wc-ico">&#128737;</span>'
+    +'<h1 class="wc-t">Situatie<br><span>beoordelen</span></h1>'
+    +'<p class="wc-s">Doorloop een nieuw initiatief of aanpassing stap voor stap. Het resultaat is een concreet rapport met wat er nodig is om goed te handelen.</p>'
+    +'<div class="wc-tags">'
+    +'<span class="wc-tag">&#177; 5&#8211;10 minuten</span>'
+    +'<span class="wc-tag">Geen specialistische kennis vereist</span>'
+    +'<span class="wc-tag">Direct bruikbaar rapport</span>'
+    +'</div>'
+    +'<button class="wc-start" onclick="goNext()">Begin &#8594;</button>'
+    +'</div></div>';
+}
+
+
+
 const S=[
   {id:'welcome',phase:'—',type:'welcome',show:()=>true},
 
@@ -615,181 +964,7 @@ const S=[
     notices:{ja:{t:'nw',m:'AI met invloed op zorgbeslissingen vereist aanvullende toetsing op MDR en AI Act.'}}},
 ];
 
-// ══ NAVIGATION ══
-const vis=()=>S.filter(s=>s.show());
-const idx=id=>vis().findIndex(s=>s.id===id);
-const cs=()=>S.find(s=>s.id===cur);
 
-function saveTxt(){const st=cs();if(st?.type==='text'){const el=document.getElementById('tf_'+st.field);if(el)A[st.field]=el.value.trim()}}
-function goNext(){saveTxt();dir=1;openTip=null;const vs=vis();const i=idx(cur);if(i>=vs.length-1){showReport();return}cur=vs[i+1].id;scroll();render()}
-function goPrev(){saveTxt();dir=-1;openTip=null;const vs=vis();const i=idx(cur);if(i<=0)return;cur=vs[i-1].id;scroll();render()}
-function scroll(){window.scrollTo({top:0,behavior:'smooth'})}
-function pick(f,v,auto){A[f]=v;render();if(auto)setTimeout(goNext,460)}
-function toggleChip(f,v){if(!A[f])A[f]=[];const i=A[f].indexOf(v);if(i>=0)A[f].splice(i,1);else A[f].push(v);render()}
-function toggleTip(id){openTip=openTip===id?null:id;render()}
-function toggleOptTip(key,e){if(e)e.stopPropagation();openOptTip=openOptTip===key?null:key;render()}
-function doRestart(){if(!confirm('Alle antwoorden wissen en opnieuw beginnen?'))return;Object.keys(A).forEach(k=>delete A[k]);cur='welcome';dir=1;openTip=null;document.getElementById('app').style.cssText='';document.getElementById('pipe').style.display='';document.getElementById('emailModal').style.display='none';render()}
-function checkNext(){const st=cs();if(!st?.req)return;const el=document.getElementById('tf_'+st.field);const btn=document.getElementById('nxt');if(el&&btn)btn.disabled=!el.value.trim()}
-
-// ══ PIPELINE ══
-function phSt(phId){const all=S.filter(s=>s.phase===phId);const vsS=all.filter(s=>s.show());const cp=cs()?.phase;const po=PM.map(p=>p.id);const ci=po.indexOf(cp);const ti=po.indexOf(phId);if(vsS.length===0)return'skip';if(phId===cp)return'active';if(ti<ci)return'done';return'future'}
-
-function renderPipe(){
-  const cp=cs()?.phase;
-  if(!cp||cp==='—'){document.getElementById('pipe').style.display='none';return}
-  document.getElementById('pipe').style.display='';
-  let h='';
-  PM.forEach((p,i)=>{
-    const st=phSt(p.id);
-    const vsS=S.filter(s=>s.phase===p.id&&s.show());
-    let dots='';
-    if(vsS.length>1&&(st==='active'||st==='done')){
-      dots=`<div class="pn-dots">${vsS.map(s=>{const id2=s.field&&A[s.field]!==undefined;const ic=s.id===cur;return`<span class="pd${ic?' active':id2?' done':''}"></span>`}).join('')}</div>`
-    }
-    h+=`<div class="pn ${st}"><div class="pc ${st}">${st==='done'?'✓':p.icon}</div><div class="pn-lbl">${p.lbl}</div>${dots}</div>`;
-    if(i<PM.length-1)h+=`<div class="pl ${st==='done'?'done':''}"></div>`;
-  });
-  h+=`<div class="pl"></div><div class="pn future"><div class="pc future">✓</div><div class="pn-lbl">Rapport</div></div>`;
-  document.getElementById('pipeIn').innerHTML=h;
-  const pe=document.getElementById('pipe');const ae=pe.querySelector('.pn.active .pc');
-  if(ae){const pr=pe.getBoundingClientRect();const ar=ae.getBoundingClientRect();pe.scrollLeft+=ar.left-pr.left-pr.width/2+ar.width/2}
-}
-
-// ══ RENDER STEP ══
-function render(){
-  const st=cs();
-  if(!st){showReport();return}
-  if(st.type==='welcome'){renderWelcome();renderPipe();return}
-  renderPipe();
-  const vs=vis();const i=idx(cur);const isLst=i===vs.length-1;
-  document.getElementById('tbC').textContent=`${i} / ${vs.length-1}`;
-
-  // Notice
-  let notice='';
-  if(st.notices&&A[st.field]){const n=st.notices[A[st.field]];if(n){const ic={nw:'⚠️',ns:'⛔',nn:'ℹ️'};notice=`<div class="notice ${n.t}"><span class="nni">${ic[n.t]||'ℹ️'}</span><span>${n.m}</span></div>`}}
-
-  // Tooltip icons
-  const hasS=!!st.short;const hasD=!!st.deep;
-  let tipIcons='';
-  if(hasS||hasD){
-    tipIcons=`<div class="tip-icons">`;
-    if(hasS)tipIcons+=`<span class="tip-ic t${openTip==='t'?' on':''}" onclick="toggleTip('t')" title="Toelichting">ⓘ</span>`;
-    if(hasD)tipIcons+=`<span class="tip-ic d${openTip==='d'?' on':''}" onclick="toggleTip('d')" title="Verdieping">i+</span>`;
-    tipIcons+=`</div>`;
-  }
-  let tipPanel='';
-  if(openTip==='t'&&st.short)tipPanel=`<div class="tip-panel t">${st.short}</div>`;
-  if(openTip==='d'&&st.deep)tipPanel=`<div class="tip-panel d">${st.deep}</div>`;
-
-  // Input
-  let inp='';
-  if(st.type==='text'){
-    const v=A[st.field]||'';
-    inp=`<div class="txt-w"><input class="txt-in" type="text" id="tf_${st.field}" value="${v.replace(/"/g,'&quot;')}" placeholder="${st.ph||''}" oninput="checkNext()" onkeypress="if(event.key==='Enter'){event.preventDefault();goNext()}"></div>`;
-  }
-  if(st.type==='choice'){
-    inp='<div class="choice-g">'+st.opts.map(o=>{
-      const ky_t=st.id+':'+o.v+':t',ky_d=st.id+':'+o.v+':d';
-      const ct='opt-ic t sm'+(openOptTip===ky_t?' on':'');
-      const cd='opt-ic d sm'+(openOptTip===ky_d?' on':'');
-      const ic_t=o.tip?`<span class="${ct}" onclick="toggleOptTip('${ky_t}',event)">ⓘ</span>`:'';
-      const ic_d=o.deep?`<span class="${cd}" onclick="toggleOptTip('${ky_d}',event)">i+</span>`:'';
-      const panel=openOptTip===ky_t&&o.tip?`<div class="tip-panel t sm">${o.tip}</div>`:
-                  openOptTip===ky_d&&o.deep?`<div class="tip-panel d sm">${o.deep}</div>`:'';
-      const sc=A[st.field]===o.v?' sel':'';
-      const auto=!!st.auto;
-      return `<div><button class="ch${sc}" onclick="pick('${st.field}','${o.v}',${auto})"><span class="ch-ico">${o.ico}</span><span><span class="ch-lbl">${o.lbl}</span><span class="ch-sub">${o.sub||''}</span></span><div class="ch-tips">${ic_t}${ic_d}</div></button>${panel}</div>`;
-    }).join('')+'</div>';
-  }
-  if(st.type==='c3'){
-    const v=A[st.field];const ct=st.c3tips||{};
-    const c3ic=val=>{
-      const ky=st.id+':c3:'+val;
-      if(!ct[val])return'';
-      const cls='opt-ic t xs'+(openOptTip===ky?' on':'');
-      return`<span class="${cls}" onclick="toggleOptTip('${ky}',event)">ⓘ</span>`;
-    };
-    const c3panel=()=>{
-      const ky_ja=st.id+':c3:ja',ky_nee=st.id+':c3:nee',ky_wn=st.id+':c3:wn';
-      if(openOptTip===ky_ja&&ct.ja)return`<div class="tip-panel t sm">${ct.ja}</div>`;
-      if(openOptTip===ky_nee&&ct.nee)return`<div class="tip-panel t sm">${ct.nee}</div>`;
-      if(openOptTip===ky_wn&&ct.wn)return`<div class="tip-panel t sm">${ct.wn}</div>`;
-      return'';
-    }
-    inp='<div class="c3r">'+
-      '<button class="c3'+(v==='ja'?' sj':'')+'" onclick="pick(\''+st.field+'\',\'ja\','+!!st.auto+')"><span class="c3m">✓</span><span>Ja</span>'+c3ic('ja')+'</button>'+
-      '<button class="c3'+(v==='nee'?' sn':'')+'" onclick="pick(\''+st.field+'\',\'nee\','+!!st.auto+')"><span class="c3m">✕</span><span>Nee</span>'+c3ic('nee')+'</button>'+
-      '<button class="c3'+(v==='wn'?' sw':'')+'" onclick="pick(\''+st.field+'\',\'wn\','+!!st.auto+')"><span class="c3m">?</span><span>Onbekend</span>'+c3ic('wn')+'</button>'+
-    '</div>'+c3panel();
-  }
-  if(st.type==='sel'){
-    inp='<div class="sel-l">'+st.opts.map(o=>{
-      const ky_t=st.id+':'+o.v+':t',ky_d=st.id+':'+o.v+':d';
-      const ct='opt-ic t'+(openOptTip===ky_t?' on':'');
-      const cd='opt-ic d'+(openOptTip===ky_d?' on':'');
-      const ic_t=o.tip?`<span class="${ct}" onclick="toggleOptTip('${ky_t}',event)">ⓘ</span>`:'';
-      const ic_d=o.deep?`<span class="${cd}" onclick="toggleOptTip('${ky_d}',event)">i+</span>`:'';
-      const panel=openOptTip===ky_t&&o.tip?`<div class="tip-panel t sm">${o.tip}</div>`:
-                  openOptTip===ky_d&&o.deep?`<div class="tip-panel d sm">${o.deep}</div>`:'';
-      const sc=A[st.field]===o.v?' sel':'';
-      const auto=!!st.auto;
-      return `<div><button class="sl${sc}" onclick="pick('${st.field}','${o.v}',${auto})"><span>${o.lbl}</span><div style="display:flex;align-items:center;gap:5px">${ic_t}${ic_d}<span class="sl-a">→</span></div></button>${panel}</div>`;
-    }).join('')+'</div>';
-  }
-  if(st.type==='chips'){
-    const sel=A[st.field]||[];
-    const optPanels=st.opts.map(o=>{
-      const ky=st.id+':'+o.v+':t';
-      return openOptTip===ky&&o.tip?`<div class="tip-panel t sm chip-tp">${o.tip}</div>`:'';
-    }).join('');
-    inp='<p class="chips-h">'+st.hint+'</p><div class="chips">'+
-      st.opts.map(o=>{
-        const ky=st.id+':'+o.v+':t';
-        const cls='opt-ic t xs'+(openOptTip===ky?' on':'');
-        const ic=o.tip?`<span class="${cls}" onclick="toggleOptTip('${ky}',event)">ⓘ</span>`:'';
-        const sc=sel.includes(o.v)?' sel':'';
-        return `<button class="chip${sc}" onclick="toggleChip('${st.field}','${o.v}')">${o.lbl}${ic}</button>`;
-      }).join('')+
-    '</div>'+optPanels;
-  }
-
-  const canNext=st.req?(A[st.field]!==undefined&&(Array.isArray(A[st.field])?A[st.field].length>0:String(A[st.field]).trim().length>0)):true;
-
-  document.getElementById('app').innerHTML=`
-    <div class="inner"><div class="card${dir<0?' back':''}">
-      <div class="step-idx">${st.phase.toUpperCase()} · Stap ${i} van ${vs.length-1}</div>
-      <div class="q-row">
-        <h1 class="q-text">${st.q}</h1>
-        ${tipIcons}
-      </div>
-      ${st.hint&&st.type!=='chips'?`<p class="q-hint">${st.hint}</p>`:''}
-      ${tipPanel}
-      ${notice}
-      ${inp}
-      <div class="nav">
-        <button class="btn-b" onclick="goPrev()" ${i===0?'disabled':''}>←</button>
-        <button class="btn-n${isLst?' last':''}" id="nxt" onclick="goNext()" ${canNext?'':'disabled'}>${isLst?'Rapport genereren →':'Volgende →'}</button>
-        ${!st.req?`<button class="btn-sk" onclick="goNext()">Overslaan</button>`:''}
-      </div>
-    </div></div>`;
-
-  if(st.type==='text')setTimeout(()=>document.getElementById('tf_'+st.field)?.focus(),60);
-}
-
-// ══ WELCOME ══
-function renderWelcome(){
-  document.getElementById('tbC').textContent='';
-  document.getElementById('pipe').style.display='none';
-  document.getElementById('app').innerHTML=`<div class="inner"><div class="card wc">
-    <span class="wc-ico">🛡️</span>
-    <h1 class="wc-t">Situatie<br><span>beoordelen</span></h1>
-    <p class="wc-s">Doorloop een nieuw initiatief of aanpassing stap voor stap. Het resultaat is een concreet rapport met wat er nodig is om goed te handelen.</p>
-    <div class="wc-tags"><span class="wc-tag">± 5–10 minuten</span><span class="wc-tag">Geen specialistische kennis vereist</span><span class="wc-tag">Direct bruikbaar rapport</span></div>
-    <button class="wc-start" onclick="goNext()">Begin →</button>
-  </div></div>`;
-}
-
-// ══ RISK ENGINE ══
 function calcRisk(){
   const R={privacy:'laag',beveiliging:'laag',leverancier:'laag',contract:'laag',continuiteit:'laag',ai:'laag',patientveiligheid:'laag'};
   if(hasPG())R.privacy=bump(R.privacy,'middel');
