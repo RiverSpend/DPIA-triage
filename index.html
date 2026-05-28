@@ -287,6 +287,40 @@ body{font-family:'Lexend',sans-serif;background:var(--bg);color:var(--dk);min-he
   .tb,.pipe,.btn-b,.btn-n,.btn-rst,.rpt-foot-btns,.modal-bg{display:none!important}
   body{background:var(--wh)}.rpt{padding:0}
 }
+
+/* ── DOCUMENT ANALYSIS ── */
+.dropzone{border:2px dashed var(--ln);border-radius:14px;padding:40px 24px;text-align:center;cursor:pointer;transition:.2s;background:var(--bg)}
+.dropzone:hover,.dz-hover{border-color:var(--bl);background:rgba(57,178,198,.04)}
+.dz-inner{pointer-events:none}
+.dz-ico{font-size:36px;margin-bottom:12px}
+.dz-t{font-size:15px;font-weight:600;color:var(--dk);margin-bottom:4px}
+.dz-s{font-size:13px;color:var(--mt)}
+.dz-types{font-size:11px;color:var(--mt);margin-top:8px;letter-spacing:.5px}
+.dz-filled .dz-t{color:var(--bl2)}
+.doc-ok{font-size:13px;color:var(--g);font-weight:500;padding:8px 0}
+.doc-err{font-size:13px;color:var(--r);font-weight:500;padding:8px 0}
+.doc-loading{font-size:13px;color:var(--mt);padding:8px 0}
+.spin{display:inline-block;animation:spin 1s linear infinite}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.analysis-dots{display:flex;justify-content:center;gap:8px}
+.analysis-dots span{width:10px;height:10px;border-radius:50%;background:var(--bl);animation:bounce .9s ease-in-out infinite}
+.analysis-dots span:nth-child(2){animation-delay:.2s}
+.analysis-dots span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(-10px);opacity:1}}
+/* welcome two-button layout */
+
+.api-info{background:#f0f9ff;border:1px solid #bae6fd;border-radius:9px;padding:12px 16px;font-size:12.5px;color:#0c4a6e;margin-top:16px;line-height:1.6}
+.api-info strong{font-weight:700}
+.wc-routes{display:flex;flex-direction:column;gap:12px;margin-bottom:20px}
+.btn-route{display:flex;align-items:center;gap:14px;padding:16px 22px;border-radius:12px;border:2px solid;cursor:pointer;font-family:inherit;font-size:14px;font-weight:600;transition:.18s;text-align:left;width:100%}
+.btn-route.primary{background:var(--or);border-color:var(--or);color:white}
+.btn-route.primary:hover{background:#c74310;transform:translateY(-1px);box-shadow:0 6px 24px rgba(231,81,19,.3)}
+.btn-route.secondary{background:white;border-color:var(--ln);color:var(--dk)}
+.btn-route.secondary:hover{border-color:var(--bl);background:rgba(57,178,198,.04);transform:translateY(-1px)}
+.btn-route .ri{font-size:22px;flex-shrink:0}
+.btn-route .rt{display:flex;flex-direction:column}
+.btn-route .rt-t{font-size:14px;font-weight:700}
+.btn-route .rt-s{font-size:12px;font-weight:400;opacity:.75;margin-top:2px}
 </style>
 </head>
 <body>
@@ -305,7 +339,15 @@ body{font-family:'Lexend',sans-serif;background:var(--bg);color:var(--dk);min-he
 <div class="stage" id="app"></div>
 <div id="emailModal" style="display:none"></div>
 
-<script>// ══════════════════════════════════════════
+<script>// ╔══════════════════════════════════════════════════════╗
+// ║  CONFIGURATIE — vul hier eenmalig de API-sleutel in  ║
+// ╚══════════════════════════════════════════════════════╝
+var EEMHART_API_KEY = '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';
+// Vul hierboven jouw Anthropic API-sleutel in tussen de aanhalingstekens,
+// bijv: var EEMHART_API_KEY = 'sk-ant-api03-xxxx...';
+// Laat leeg ('') om gebruikers om hun eigen sleutel te vragen.
+
+// ══════════════════════════════════════════
 //  STATE — toplevel only, no nesting
 // ══════════════════════════════════════════
 var A={};
@@ -678,7 +720,7 @@ function renderWelcome(){
     +'<div class="wc-col"><div class="wc-col-ico">&#128203;</div><div class="wc-col-t">Concrete acties</div><div class="wc-col-s">Je krijgt een overzicht van wat er geregeld moet worden: contracten, afspraken, meldingen en wie je daarvoor betrekt.</div></div>'
     +'<div class="wc-col"><div class="wc-col-ico">&#128336;</div><div class="wc-col-t">Vijf tot tien minuten</div><div class="wc-col-s">Geen juridische of technische kennis nodig. Weet je iets niet? &#8216;Onbekend&#8217; is altijd een goed antwoord.</div></div>'
     +'</div>'
-    +'<button class="wc-start" onclick="goNext()">Begin de beoordeling &#8594;</button>'
+    +'<div class="wc-routes">'+'<button class="btn-route primary" onclick="goNext()">'+'<span class="ri">&#128203;</span>'+'<span class="rt"><span class="rt-t">Stap-voor-stap beoordelen &#8594;</span><span class="rt-s">Doorloop gerichte vragen over jouw situatie &mdash; ca. 5-10 minuten</span></span>'+'</button>'+'<button class="btn-route secondary" onclick="showDocAnalyzer()">'+'<span class="ri">&#128196;</span>'+'<span class="rt"><span class="rt-t">Document analyseren &#8594;</span><span class="rt-s">Upload een offerte, contract of productbeschrijving &mdash; direct resultaat</span></span>'+'</button>'+'</div>'
     +'<p class="wc-foot">Jouw antwoorden worden nergens opgeslagen en verdwijnen zodra je het venster sluit.</p>'
     +'</div></div>';
 }
@@ -1265,6 +1307,412 @@ function showReport(){
     </div>
   </div>`;
 }
+
+
+// ══════════════════════════════════════════
+//  DOCUMENT ANALYSIS ROUTE
+// ══════════════════════════════════════════
+
+var docFile = null;
+var docText = '';
+var docBase64 = '';
+var docMediaType = '';
+var docIsImage = false;
+var docIsPdf = false;
+var analysisMode = false;
+
+function showDocAnalyzer() {
+  analysisMode = true;
+  document.getElementById('pipe').style.display = 'none';
+  document.getElementById('tbC').textContent = 'Document analyseren';
+  document.getElementById('app').innerHTML =
+    '<div class="inner" style="max-width:660px;padding-top:60px;padding-bottom:80px">'
+    +'<div class="card">'
+    +'<div class="step-idx">DOCUMENT ANALYSE</div>'
+    +'<h1 class="q-text" style="font-size:22px;margin-bottom:8px">Upload een offerte, contract of productbeschrijving</h1>'
+    +'<p class="q-hint">De tool leest het document en genereert direct een privacybeoordeling. Ondersteunde formaten: PDF, DOCX, afbeelding (PNG/JPG).</p>'
+    +'<div id="dropzone" class="dropzone" ondragover="dzOver(event)" ondragleave="dzLeave(event)" ondrop="dzDrop(event)" onclick="document.getElementById(\'fileIn\').click()">'
+    +'<div class="dz-inner" id="dzInner">'
+    +'<div class="dz-ico">&#128196;</div>'
+    +'<div class="dz-t">Sleep hier een bestand naartoe</div>'
+    +'<div class="dz-s">of klik om een bestand te kiezen</div>'
+    +'<div class="dz-types">PDF &middot; DOCX &middot; PNG &middot; JPG</div>'
+    +'</div>'
+    +'<input type="file" id="fileIn" accept=".pdf,.docx,.png,.jpg,.jpeg" style="display:none" onchange="dzFile(this)">'
+    +'</div>'
+    +'<div id="docStatus" style="margin-top:16px"></div>'+(function(){
+    var builtIn = typeof EEMHART_API_KEY !== 'undefined' && EEMHART_API_KEY && EEMHART_API_KEY.trim();
+    if (builtIn) {
+      return '<div class="api-info" id="apiInfo">&#128274; <strong>API-sleutel:</strong> Geconfigureerd door de beheerder. Documenten worden geanalyseerd via de Anthropic API.</div>';
+    } else {
+      return '<div class="api-info" id="apiInfo"><strong>API-sleutel:</strong> De documentanalyse gebruikt de Anthropic API. Eerste keer? Je wordt gevraagd om je sleutel (sk-ant-...). Wordt alleen lokaal opgeslagen.&nbsp;<button onclick="clearApiKey()" style="background:none;border:none;color:#0c4a6e;text-decoration:underline;cursor:pointer;font-family:inherit;font-size:12px;padding:0">Sleutel wissen</button></div>';
+    }
+  })()
+    +'<div class="nav" style="margin-top:24px">'
+    +'<button class="btn-b" onclick="backToWelcome()">&#8592; Terug</button>'
+    +'<button class="btn-n last" id="analyzeBtn" disabled onclick="runAnalysis()">Analyseren &#8594;</button>'
+    +'</div>'
+    +'</div></div>';
+}
+
+function backToWelcome() {
+  analysisMode = false;
+  docFile = null; docText = ''; docBase64 = ''; docMediaType = ''; docIsImage = false; docIsPdf = false;
+  cur = 'welcome';
+  renderWelcome();
+}
+
+function dzOver(e) {
+  e.preventDefault();
+  document.getElementById('dropzone').classList.add('dz-hover');
+}
+function dzLeave(e) {
+  document.getElementById('dropzone').classList.remove('dz-hover');
+}
+function dzDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropzone').classList.remove('dz-hover');
+  var files = e.dataTransfer.files;
+  if (files.length > 0) processDocFile(files[0]);
+}
+function dzFile(inp) {
+  if (inp.files.length > 0) processDocFile(inp.files[0]);
+}
+
+function processDocFile(file) {
+  docFile = file;
+  var ext = file.name.split('.').pop().toLowerCase();
+  var status = document.getElementById('docStatus');
+  status.innerHTML = '<div class="doc-loading"><span class="spin">&#9696;</span> Bestand inlezen: <strong>'+file.name+'</strong></div>';
+
+  document.getElementById('dropzone').innerHTML =
+    '<div class="dz-inner dz-filled">'
+    +'<div class="dz-ico">&#128196;</div>'
+    +'<div class="dz-t">'+file.name+'</div>'
+    +'<div class="dz-s">'+Math.round(file.size/1024)+' KB</div>'
+    +'</div>';
+
+  if (ext === 'pdf') {
+    docIsPdf = true; docIsImage = false;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var b64 = e.target.result.split(',')[1];
+      docBase64 = b64;
+      docMediaType = 'application/pdf';
+      docText = '';
+      status.innerHTML = '<div class="doc-ok">&#10003; PDF gereed &mdash; klik Analyseren om te starten</div>';
+      document.getElementById('analyzeBtn').disabled = false;
+    };
+    reader.readAsDataURL(file);
+
+  } else if (ext === 'docx') {
+    docIsPdf = false; docIsImage = false;
+    // Use mammoth to extract text from DOCX
+    var script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js';
+    script.onload = function() {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        mammoth.extractRawText({arrayBuffer: e.target.result}).then(function(result) {
+          docText = result.value;
+          docBase64 = '';
+          docMediaType = '';
+          if (docText.length < 50) {
+            // Might be image-based DOCX - fallback to base64 send
+            docText = '[DOCX bevat weinig tekst — mogelijk afbeeldingen. Bestandsnaam: '+file.name+']';
+          }
+          status.innerHTML = '<div class="doc-ok">&#10003; DOCX gelezen ('+docText.length+' tekens) &mdash; klik Analyseren</div>';
+          document.getElementById('analyzeBtn').disabled = false;
+        }).catch(function(err) {
+          status.innerHTML = '<div class="doc-err">&#10005; Kon DOCX niet lezen: '+err.message+'</div>';
+        });
+      };
+      reader.readAsArrayBuffer(file);
+    };
+    script.onerror = function() {
+      // Fallback: just use filename and ask user
+      docText = 'DOCX bestand: '+file.name+' (kon niet worden uitgelezen)';
+      status.innerHTML = '<div class="doc-ok">&#10003; Bestand geselecteerd &mdash; klik Analyseren</div>';
+      document.getElementById('analyzeBtn').disabled = false;
+    };
+    document.head.appendChild(script);
+
+  } else if (ext === 'png' || ext === 'jpg' || ext === 'jpeg') {
+    docIsImage = true; docIsPdf = false;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var b64 = e.target.result.split(',')[1];
+      docBase64 = b64;
+      docMediaType = ext === 'png' ? 'image/png' : 'image/jpeg';
+      docText = '';
+      status.innerHTML = '<div class="doc-ok">&#10003; Afbeelding gereed &mdash; klik Analyseren</div>';
+      document.getElementById('analyzeBtn').disabled = false;
+    };
+    reader.readAsDataURL(file);
+  } else {
+    status.innerHTML = '<div class="doc-err">&#10005; Onbekend bestandsformaat. Gebruik PDF, DOCX, PNG of JPG.</div>';
+  }
+}
+
+function clearApiKey() {
+  sessionStorage.removeItem('eemhart_api_key');
+  var el = document.getElementById('apiKeyStatus');
+  if (el) el.textContent = 'API-sleutel gewist.';
+}
+function retryWithNewKey() {
+  sessionStorage.removeItem('eemhart_api_key');
+  runAnalysis();
+}
+
+function runAnalysis() {
+  document.getElementById('app').innerHTML =
+    '<div class="inner" style="max-width:660px;padding-top:80px;padding-bottom:80px;text-align:center">'
+    +'<div class="card" style="padding:48px 32px">'
+    +'<div style="font-size:48px;margin-bottom:20px">&#128269;</div>'
+    +'<h2 style="font-size:20px;font-weight:600;margin-bottom:12px">Document wordt geanalyseerd&hellip;</h2>'
+    +'<p style="color:var(--mid);font-size:14px;margin-bottom:28px">De AI leest het document en beoordeelt privacyrisico&apos;s, beveiligingsaspecten en contractvereisten.</p>'
+    +'<div class="analysis-dots"><span></span><span></span><span></span></div>'
+    +'</div></div>';
+
+  // Build the API message content
+  var msgContent = [];
+
+  if (docIsPdf) {
+    msgContent.push({
+      type: 'document',
+      source: { type: 'base64', media_type: docMediaType, data: docBase64 }
+    });
+  } else if (docIsImage) {
+    msgContent.push({
+      type: 'image',
+      source: { type: 'base64', media_type: docMediaType, data: docBase64 }
+    });
+  }
+
+  var textPrompt = '';
+  if (docText) {
+    textPrompt = 'DOCUMENTINHOUD:\n\n' + docText.substring(0, 15000) + '\n\n';
+  }
+
+  textPrompt += ANALYSIS_PROMPT;
+  msgContent.push({ type: 'text', text: textPrompt });
+
+  // Use built-in key if configured, otherwise ask user
+  var apiKey = '';
+  if (typeof EEMHART_API_KEY !== 'undefined' && EEMHART_API_KEY && EEMHART_API_KEY.trim()) {
+    apiKey = EEMHART_API_KEY.trim();
+  } else {
+    apiKey = sessionStorage.getItem('eemhart_api_key') || '';
+    if (!apiKey) {
+      var k = prompt('Voer je Anthropic API-sleutel in (begint met sk-ant-...):\n\nDeze wordt alleen lokaal opgeslagen en niet verzonden.');
+      if (!k || !k.trim()) { backToWelcome(); return; }
+      sessionStorage.setItem('eemhart_api_key', k.trim());
+      apiKey = k.trim();
+    }
+  }
+  fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 4000,
+      messages: [{ role: 'user', content: msgContent }]
+    })
+  })
+  .then(function(r) {
+    if (!r.ok) {
+      if (r.status === 401) { sessionStorage.removeItem('eemhart_api_key'); }
+      return r.json().then(function(e){ throw new Error((e.error&&e.error.message)||'API-fout '+r.status); });
+    }
+    return r.json();
+  })
+  .then(function(data) {
+    var raw = '';
+    for (var i = 0; i < data.content.length; i++) {
+      if (data.content[i].type === 'text') raw += data.content[i].text;
+    }
+    // Extract JSON from response
+    var jsonMatch = raw.match(/```json\s*([\s\S]*?)```/) || raw.match(/\{[\s\S]*\}/);
+    var parsed;
+    try {
+      var jsonStr = jsonMatch ? (jsonMatch[1] || jsonMatch[0]) : raw;
+      parsed = JSON.parse(jsonStr.trim());
+    } catch(e) {
+      parsed = { error: 'Kon JSON niet parsen', raw: raw };
+    }
+    renderDocReport(parsed, docFile ? docFile.name : 'Document');
+  })
+  .catch(function(err) {
+    // On auth error, clear stored key so user can re-enter
+    if (err.message && (err.message.indexOf('401') >= 0 || err.message.indexOf('auth') >= 0)) {
+      sessionStorage.removeItem('eemhart_api_key');
+    }
+    var errTip = err.message === 'Failed to fetch'
+      ? 'Netwerkfout. Controleer of je internetverbinding actief is. Als je het bestand lokaal opent via file://, probeer het dan via GitHub Pages of een lokale server.'
+      : err.message;
+    document.getElementById('app').innerHTML =
+      '<div class="inner"><div class="card" style="padding:40px">'
+      +'<div style="color:var(--r);font-size:14px;margin-bottom:12px"><strong>Fout bij analyse:</strong> '+err.message+'</div>'
+      +'<div style="font-size:13px;color:var(--mt);margin-bottom:20px">'+errTip+'</div>'
+      +'<div style="display:flex;gap:10px">'
+      +'<button class="btn-b" onclick="backToWelcome()">&#8592; Terug</button>'
+      +'<button class="btn-n" onclick="retryWithNewKey()">Andere API-sleutel proberen</button>'
+      +'</div></div></div>';
+  });
+}
+
+var ANALYSIS_PROMPT = 'Je bent een senior privacy- en complianceadviseur gespecialiseerd in de zorg (Eemhart). Analyseer het bovenstaande document (offerte, contract, productbeschrijving of vergelijkbaar) en beoordeel de privacy- en beveiligingsaspecten.\n\nGeef je antwoord UITSLUITEND als geldig JSON (geen tekst ervoor of erna), in dit exacte formaat:\n\n```json\n{\n  "document_naam": "naam van het product/project",\n  "leverancier": "naam leverancier indien bekend",\n  "samenvatting": "2-3 zinnen over wat het document beschrijft",\n  "verdict": "groen|geel|rood",\n  "verdict_toelichting": "korte onderbouwing van het eindoordeel",\n  "dpia_status": "verplicht|waarschijnlijk|overwegen|niet_vereist",\n  "dpia_toelichting": "waarom wel/niet",\n  "risico_scores": {\n    "privacy": "laag|middel|hoog|kritiek",\n    "beveiliging": "laag|middel|hoog|kritiek",\n    "leverancier": "laag|middel|hoog|kritiek",\n    "contract": "laag|middel|hoog|kritiek",\n    "continuiteit": "laag|middel|hoog|kritiek",\n    "ai": "laag|middel|hoog|kritiek",\n    "patientveiligheid": "laag|middel|hoog|kritiek"\n  },\n  "persoonsgegevens": {\n    "aanwezig": true,\n    "categorieën": ["medewerkersgegevens","cliëntgegevens"],\n    "gezondheidsgegevens": false,\n    "toelichting": "welke gegevens precies"\n  },\n  "verplichte_acties": [\n    "Concrete actie 1",\n    "Concrete actie 2"\n  ],\n  "aanbevolen_acties": [\n    "Aanbeveling 1"\n  ],\n  "benodigde_documenten": [\n    {"naam": "Verwerkersovereenkomst (VOK)", "urgentie": "kritiek|hoog|normaal"},\n    {"naam": "DPIA", "urgentie": "kritiek|hoog|normaal"}\n  ],\n  "escalaties": [\n    {"rol": "FG (Functionaris Gegevensbescherming)", "reden": "DPIA vereist"},\n    {"rol": "Inkoop / Contractbeheer", "reden": "Contractreview nodig"}\n  ],\n  "open_vragen": [\n    "Vraag die het document niet beantwoordt",\n    "Andere ontbrekende informatie"\n  ],\n  "ontbrekende_info": "Toelichting op wat niet in het document staat maar wel relevant is"\n}\n```\n\nWees kritisch en grondig. Let specifiek op: persoonsgegevens, opslaglocatie (cloud/land), beveiliging (MFA/encryptie), subverwerkers, OR-instemmingsrecht, verwerkersovereenkomst, DPIA-noodzaak, AI-toepassingen en continuïteitsrisico.';
+
+function renderDocReport(data, fileName) {
+  if (data.error) {
+    document.getElementById('app').innerHTML =
+      '<div class="inner"><div class="card" style="padding:40px">'
+      +'<div style="color:var(--r);margin-bottom:16px"><strong>Analyse mislukt:</strong> '+data.error+'</div>'
+      +'<div style="font-size:12px;color:var(--mt);white-space:pre-wrap;max-height:200px;overflow-y:auto">'+data.raw+'</div>'
+      +'<button class="btn-b" style="margin-top:16px" onclick="backToWelcome()">&#8592; Terug</button>'
+      +'</div></div>';
+    return;
+  }
+
+  var v = data.verdict || 'geel';
+  var vCls = {groen:'vg', geel:'vy', rood:'vr'}[v] || 'vy';
+  var vIco = {groen:'&#9989;', geel:'&#9888;&#65039;', rood:'&#128683;'}[v] || '&#9888;&#65039;';
+  var vTitle = {groen:'Voorzichtig groen licht', geel:'Toegestaan onder voorwaarden', rood:'Nog niet gereed voor gebruik'}[v] || '';
+
+  var rLbls = {privacy:'Privacy', beveiliging:'Beveiliging', leverancier:'Leverancier',
+    contract:'Contract', continuiteit:'Continuïteit', ai:'AI', patientveiligheid:'Pati&euml;ntveiligheid'};
+  var risks = data.risico_scores || {};
+
+  // Risk grid
+  var riskHtml = '<div class="risk-g">';
+  for (var k in rLbls) {
+    var lv = risks[k] || 'laag';
+    riskHtml += '<div class="rk '+lv+'"><span class="rk-lv">'+lv+'</span><span class="rk-cat">'+rLbls[k]+'</span></div>';
+  }
+  riskHtml += '</div>';
+
+  // DPIA pill
+  var dpMap = {
+    verplicht: {cls:'dp-v', txt:'DPIA verplicht &mdash; betrek de FG v&oacute;&oacute;r de start.'},
+    waarschijnlijk: {cls:'dp-w', txt:'DPIA waarschijnlijk vereist &mdash; laat de FG dit beoordelen.'},
+    overwegen: {cls:'dp-o', txt:'Privacytoets aanbevolen &mdash; bespreek met de Privacy Officer.'},
+    niet_vereist: null
+  };
+  var dpLabel = dpMap[data.dpia_status] || null;
+  var dpHtml = dpLabel ? '<div class="dpia-row '+dpLabel.cls+'">&#128203; <strong>DPIA:</strong>&nbsp;'+dpLabel.txt+'</div>' : '';
+
+  // Verplichte acties
+  var vp = data.verplichte_acties || [];
+  var vpHtml = vp.length
+    ? '<div class="act-l">'+vp.map(function(a){return '<div class="act act-v"><span class="bdg bv">Verplicht</span><span>'+a+'</span></div>';}).join('')+'</div>'
+    : '<p style="color:var(--g);font-size:14px;font-weight:500">Geen verplichte acties ge&iuml;dentificeerd.</p>';
+
+  // Aanbevolen acties
+  var aa = data.aanbevolen_acties || [];
+  var aaHtml = aa.length
+    ? '<div class="act-l">'+aa.map(function(a){return '<div class="act act-a"><span class="bdg ba">Aanbevolen</span><span>'+a+'</span></div>';}).join('')+'</div>'
+    : '<p style="color:var(--mt);font-size:14px">Geen aanvullende aanbevelingen.</p>';
+
+  // Documenten
+  var docs = data.benodigde_documenten || [];
+  var docUrgCls = {kritiek:'dt-r', hoog:'dt-y', normaal:'dt-n'};
+  var docsHtml = docs.map(function(d){
+    return '<span class="dt '+(docUrgCls[d.urgentie]||'dt-n')+'">'+d.naam+'</span>';
+  }).join('');
+
+  // Escalaties
+  var escMap = {
+    'FG': 'e-fg', 'Privacy': 'e-fg', 'CISO': 'e-ci', 'Security': 'e-ci',
+    'Juridisch': 'e-ju', 'Inkoop': 'e-in', 'Directie': 'e-di', 'Medisch': 'e-di'
+  };
+  var escs = data.escalaties || [];
+  var escHtml = escs.length ? '<div class="esc-l">'+escs.map(function(e){
+    var cls = 'e-ju';
+    for (var k in escMap) { if (e.rol.indexOf(k) >= 0) { cls = escMap[k]; break; } }
+    return '<div class="esc '+cls+'"><span class="e-ic">&#128100;</span><div><span class="e-role">'+e.rol+'</span><span class="e-why">'+e.reden+'</span></div></div>';
+  }).join('')+'</div>'
+  : '<p style="color:var(--g);font-size:14px;font-weight:500">Geen escalaties noodzakelijk.</p>';
+
+  // Open vragen
+  var oqs = data.open_vragen || [];
+  var oqHtml = oqs.length ? '<div class="oq-l">'+oqs.map(function(q){return '<div class="oq">&#128269; '+q+'</div>';}).join('')+'</div>' : '';
+
+  var now = new Date().toLocaleDateString('nl-NL', {day:'numeric', month:'long', year:'numeric'});
+
+  document.getElementById('pipe').style.display = 'none';
+  document.getElementById('app').style.cssText = 'display:block;padding-top:118px';
+  document.getElementById('app').innerHTML =
+    '<div class="rpt">'
+
+    // Header
+    +'<div class="rpt-head">'
+    +'<div class="rpt-super">Documentanalyse &middot; Eemhart</div>'
+    +'<div class="rpt-title">'+(data.document_naam||fileName)+'</div>'
+    +'<div class="rpt-meta">'+(data.leverancier||'')+(data.leverancier?' &middot; ':'')+now
+    +'&nbsp;<span style="background:#fef9c3;color:#78350f;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:600">Op basis van documentinhoud</span>'
+    +'</div>'
+    +'</div>'
+
+    // Samenvatting box
+    +(data.samenvatting ? '<div style="background:var(--bg);border-radius:10px;padding:16px 20px;margin-bottom:28px;font-size:14px;color:var(--mid);line-height:1.65;border-left:3px solid var(--bl)">'+data.samenvatting+'</div>' : '')
+
+    // Verdict
+    +'<div class="verdict '+vCls+'">'
+    +'<div class="v-ico">'+vIco+'</div>'
+    +'<div><div class="v-title">'+vTitle+'</div>'
+    +'<div class="v-desc">'+(data.verdict_toelichting||'')+'</div></div>'
+    +'</div>'
+
+    +dpHtml
+
+    // Risicoscores
+    +'<div class="rsec"><div class="rsec-t">Risicoanalyse per categorie</div>'+riskHtml+'</div>'
+
+    // Persoonsgegevens
+    +(data.persoonsgegevens ? '<div class="rsec"><div class="rsec-t">Persoonsgegevens</div>'
+      +'<div style="background:var(--bg);border-radius:10px;padding:14px 16px;font-size:13.5px;line-height:1.65">'
+      +(data.persoonsgegevens.aanwezig ? '&#9989; <strong>Aanwezig</strong>' : '&#10060; Niet aanwezig')
+      +(data.persoonsgegevens.gezondheidsgegevens ? ' &middot; <strong style="color:var(--r)">Gezondheidsgegevens</strong>' : '')
+      +(data.persoonsgegevens.categorieën && data.persoonsgegevens.categorieën.length ? ' &middot; '+data.persoonsgegevens.categorieën.join(', ') : '')
+      +(data.persoonsgegevens.toelichting ? '<br><span style="color:var(--mid)">'+data.persoonsgegevens.toelichting+'</span>' : '')
+      +'</div></div>' : '')
+
+    // Verplichte acties
+    +'<div class="rsec"><div class="rsec-t">Verplichte acties</div>'+vpHtml+'</div>'
+
+    // Aanbevolen acties
+    +'<div class="rsec"><div class="rsec-t">Aanbevolen acties</div>'+aaHtml+'</div>'
+
+    // Documenten
+    +(docs.length ? '<div class="rsec"><div class="rsec-t">Benodigde documenten</div><div class="doc-tags">'+docsHtml+'</div></div>' : '')
+
+    // Escalaties
+    +'<div class="rsec"><div class="rsec-t">Te betrekken functionarissen</div>'+escHtml+'</div>'
+
+    // Open vragen
+    +(oqHtml ? '<div class="rsec"><div class="rsec-t">Nog uit te zoeken (ontbreekt in document)</div>'+oqHtml+'</div>' : '')
+
+    // Ontbrekende info disclaimer
+    +(data.ontbrekende_info ? '<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:14px 18px;font-size:13px;color:#78350f;margin-bottom:32px">'
+      +'<strong>Let op:</strong> '+data.ontbrekende_info+'<br>Voor een volledig beeld, doorloop de stap-voor-stap beoordeling.'
+      +'</div>' : '')
+
+    // Footer
+    +'<div class="rpt-foot">'
+    +'<span class="rpt-foot-note">Documentanalyse &middot; Eemhart &middot; '+now+'</span>'
+    +'<div class="rpt-foot-btns">'
+    +'<button class="btn-rst" onclick="backToWelcome()">&#8617; Nieuwe analyse</button>'
+    +'<button class="btn-rst" onclick="cur=\'welcome\';goNext()" style="border-color:var(--bl);color:var(--bl2)">&#9654; Volledige beoordeling starten</button>'
+    +'<button class="btn-print" onclick="window.print()">Afdrukken / PDF</button>'
+    +'</div></div>'
+    +'</div>';
+}
+
 
 document.addEventListener('DOMContentLoaded',render);
 </script>
