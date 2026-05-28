@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Situatiebeoordeling – Eemhart</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --or:#E75113;--bl:#39B2C6;--bl2:#2d818e;--pu:#890F75;
+  --bg:#F4F6F9;--wh:#fff;--ln:#E2E7EF;
+  --mt:#8B95A5;--dk:#1A2135;--mid:#4A5568;
+  --g:#16a34a;--y:#d97706;--r:#dc2626;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;-webkit-font-smoothing:antialiased}
+body{font-family:'Lexend',sans-serif;background:var(--bg);color:var(--dk);min-height:100vh;font-size:15px;line-height:1.6}
+
+/* ── TOPBAR ── */
+.tb{position:fixed;top:0;left:0;right:0;z-index:200;height:54px;background:var(--wh);border-bottom:1px solid var(--ln);display:flex;align-items:center;justify-content:space-between;padding:0 28px}
+.logo{font-size:16px;font-weight:700;letter-spacing:-.3px;display:flex;align-items:center}
+.lE{color:var(--bl2)}.lH{color:var(--or);font-size:17px}.lA{color:var(--or)}
+.logo-div{width:1px;height:18px;background:var(--ln);margin:0 14px}
+.logo-sub{font-size:11px;color:var(--mt);font-weight:500}
+.tb-r{display:flex;align-items:center;gap:14px}
+.tb-c{font-size:12px;color:var(--mt);font-weight:500}
+.btn-rst{font-size:12px;font-weight:500;font-family:inherit;color:var(--mt);background:none;border:1.5px solid var(--ln);padding:5px 14px;border-radius:6px;cursor:pointer;transition:.15s}
+.btn-rst:hover{color:var(--dk);border-color:var(--mt)}
+
+/* ── PIPELINE ── */
+.pipe{position:fixed;top:54px;left:0;right:0;z-index:199;background:var(--wh);border-bottom:1px solid var(--ln);padding:14px 28px 12px;overflow-x:auto;scrollbar-width:none}
+.pipe::-webkit-scrollbar{display:none}
+.pipe-in{display:flex;align-items:flex-start;min-width:max-content;margin:0 auto;max-width:720px;width:100%}
+.pn{display:flex;flex-direction:column;align-items:center;gap:5px;flex-shrink:0}
+.pc{width:30px;height:30px;border-radius:50%;border:2px solid var(--ln);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--mt);background:var(--wh);transition:all .4s cubic-bezier(.4,0,.2,1)}
+.pc.done{background:var(--bl);border-color:var(--bl);color:var(--wh)}
+.pc.active{background:var(--or);border-color:var(--or);color:var(--wh);transform:scale(1.18);box-shadow:0 0 0 4px rgba(231,81,19,.15)}
+.pc.skip{border-style:dashed;border-color:var(--ln);color:var(--ln)}
+.pl{flex:1;min-width:18px;max-width:56px;height:2px;background:var(--ln);margin-top:15px;flex-shrink:0;transition:background .4s ease}
+.pl.done{background:var(--bl)}
+.pn-lbl{font-size:9px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:var(--mt);white-space:nowrap;transition:.3s}
+.pn.done .pn-lbl{color:var(--bl2)}.pn.active .pn-lbl{color:var(--or);font-weight:700}.pn.skip .pn-lbl{color:var(--ln)}
+.pn-dots{display:flex;gap:3px;margin-top:2px}
+.pd{width:5px;height:5px;border-radius:50%;background:var(--ln);transition:.3s}
+.pd.done{background:var(--bl)}.pd.active{background:var(--or)}
+
+/* ── STAGE ── */
+.stage{min-height:100vh;padding-top:118px;display:flex;align-items:center;justify-content:center}
+.inner{width:100%;max-width:600px;padding:52px 24px 80px}
+
+/* ── CARD ── */
+.card{animation:slideR .3s cubic-bezier(.4,0,.2,1)}
+.card.back{animation:slideL .3s cubic-bezier(.4,0,.2,1)}
+@keyframes slideR{from{opacity:0;transform:translateX(48px)}to{opacity:1;transform:translateX(0)}}
+@keyframes slideL{from{opacity:0;transform:translateX(-48px)}to{opacity:1;transform:translateX(0)}}
+
+.step-idx{font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--mt);margin-bottom:20px}
+.q-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
+.q-text{font-size:25px;font-weight:600;line-height:1.25;color:var(--dk);flex:1}
+.q-hint{font-size:13.5px;color:var(--mid);margin-bottom:24px;line-height:1.6}
+
+/* ── TOOLTIP ICONS ── */
+.tip-icons{display:flex;gap:6px;flex-shrink:0;margin-top:4px}
+.tip-ic{
+  width:22px;height:22px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:10px;font-weight:700;
+  transition:.15s;position:relative;flex-shrink:0;
+  border:1.5px solid;
+  -webkit-user-select:none;user-select:none;
+}
+.tip-ic.t{background:rgba(57,178,198,.1);border-color:rgba(57,178,198,.4);color:var(--bl2)}
+.tip-ic.t:hover,.tip-ic.t.on{background:var(--bl);border-color:var(--bl);color:var(--wh)}
+.tip-ic.d{background:rgba(137,15,117,.08);border-color:rgba(137,15,117,.3);color:var(--pu);font-size:9px}
+.tip-ic.d:hover,.tip-ic.d.on{background:var(--pu);border-color:var(--pu);color:var(--wh)}
+
+/* Per-option tooltip icons */
+.opt-ic{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;cursor:pointer;font-size:9px;font-weight:700;transition:.15s;border:1.5px solid;flex-shrink:0;vertical-align:middle;margin-left:3px;-webkit-user-select:none;user-select:none}
+.opt-ic.t{background:rgba(57,178,198,.1);border-color:rgba(57,178,198,.35);color:var(--bl2)}
+.opt-ic.t:hover,.opt-ic.t.on{background:var(--bl);border-color:var(--bl);color:var(--wh)}
+.opt-ic.d{background:rgba(137,15,117,.07);border-color:rgba(137,15,117,.25);color:var(--pu);font-size:8px}
+.opt-ic.d:hover,.opt-ic.d.on{background:var(--pu);border-color:var(--pu);color:var(--wh)}
+.opt-ic.xs{width:15px;height:15px;font-size:8px}
+
+.tip-panel.sm{font-size:12.5px;padding:10px 14px;margin-top:5px;margin-bottom:8px}
+.chip-tp{margin-top:8px}
+.ch-tips{display:flex;gap:4px;margin-left:auto;align-items:center;flex-shrink:0;padding-left:8px}
+
+/* ── TOOLTIP PANEL ── */
+.tip-panel{
+  background:var(--wh);border-radius:12px;
+  padding:14px 18px;font-size:13px;line-height:1.65;
+  box-shadow:0 8px 40px rgba(0,0,0,.13);
+  margin-bottom:20px;
+  border-left:3px solid;
+  animation:fadeIn .18s ease;
+}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.tip-panel.t{border-color:var(--bl);color:var(--bl2)}
+.tip-panel.d{border-color:var(--pu);color:#5b0d50}
+
+/* ── NOTICE ── */
+.notice{padding:12px 16px;border-radius:9px;font-size:13px;line-height:1.55;margin-bottom:20px;display:flex;gap:9px;align-items:flex-start}
+.nw{background:#fffbeb;border:1px solid #fde68a;color:#78350f}
+.ns{background:#fff1f2;border:1px solid #fecdd3;color:#9f1239}
+.nn{background:#f0f9ff;border:1px solid #bae6fd;color:#0c4a6e}
+.nni{flex-shrink:0;font-size:14px;margin-top:1px}
+
+/* ── ANSWERS ── */
+.choice-g{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:28px}
+.ch{padding:18px 16px;background:var(--wh);border:2px solid var(--ln);border-radius:14px;font-family:inherit;cursor:pointer;text-align:left;transition:.16s;display:flex;align-items:center;gap:12px;width:100%}
+.ch:hover{border-color:var(--bl);transform:translateY(-1px);box-shadow:0 4px 16px rgba(57,178,198,.1)}
+.ch.sel{border-color:var(--bl);background:rgba(57,178,198,.06)}
+.ch-ico{width:34px;height:34px;border-radius:9px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;transition:.16s}
+.ch.sel .ch-ico{background:var(--bl);color:var(--wh)}
+.ch-lbl{font-size:14px;font-weight:600;display:block;color:var(--dk)}
+.ch-sub{font-size:12px;color:var(--mt);display:block;margin-top:2px;font-weight:400}
+
+.c3r{display:flex;gap:10px;margin-bottom:28px}
+.c3{flex:1;padding:16px 12px;background:var(--wh);border:2px solid var(--ln);border-radius:14px;font-family:inherit;cursor:pointer;font-size:14px;font-weight:600;color:var(--mid);display:flex;flex-direction:column;align-items:center;gap:6px;transition:.16s}
+.c3m{width:30px;height:30px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:14px;transition:.16s}
+.c3:hover{border-color:var(--bl);transform:translateY(-1px)}
+.c3.sj{border-color:#22c55e;background:rgba(34,197,94,.06);color:#166534}.c3.sj .c3m{background:#22c55e;color:var(--wh)}
+.c3.sn{border-color:var(--ln);background:#fafafa;color:var(--mid)}.c3.sn .c3m{background:var(--mid);color:var(--wh)}
+.c3.sw{border-color:var(--y);background:rgba(217,119,6,.06);color:#78350f}.c3.sw .c3m{background:var(--y);color:var(--wh)}
+
+.sel-l{display:flex;flex-direction:column;gap:8px;margin-bottom:28px}
+.sl{padding:14px 18px;background:var(--wh);border:2px solid var(--ln);border-radius:10px;font-family:inherit;font-size:14px;font-weight:500;color:var(--dk);cursor:pointer;text-align:left;transition:.15s;display:flex;align-items:center;justify-content:space-between}
+.sl:hover{border-color:var(--bl);background:rgba(57,178,198,.04);transform:translateX(3px)}
+.sl.sel{border-color:var(--bl);background:rgba(57,178,198,.07);color:var(--bl2);font-weight:600}
+.sl-a{opacity:0;transition:.15s;color:var(--bl)}.sl.sel .sl-a,.sl:hover .sl-a{opacity:1}
+
+.chips-h{font-size:12.5px;color:var(--mt);margin-bottom:12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px}
+.chip{padding:9px 17px;background:var(--wh);border:2px solid var(--ln);border-radius:30px;font-family:inherit;font-size:13.5px;font-weight:500;color:var(--dk);cursor:pointer;transition:.15s}
+.chip:hover{border-color:var(--bl);background:rgba(57,178,198,.05)}
+.chip.sel{background:var(--bl);border-color:var(--bl);color:var(--wh)}
+
+.txt-w{margin-bottom:28px}
+.txt-in{width:100%;padding:15px 18px;background:var(--wh);border:2px solid var(--ln);border-radius:14px;font-size:15px;font-family:inherit;color:var(--dk);outline:none;transition:.2s}
+.txt-in:focus{border-color:var(--bl);box-shadow:0 0 0 3px rgba(57,178,198,.1)}
+.txt-in::placeholder{color:#c2c8d3}
+
+/* ── NAV ── */
+.nav{display:flex;align-items:center;gap:12px}
+.btn-n{padding:13px 34px;background:var(--dk);color:var(--wh);border:none;border-radius:10px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;transition:.2s}
+.btn-n:hover{background:var(--bl2);transform:translateY(-1px);box-shadow:0 6px 20px rgba(45,129,142,.3)}
+.btn-n:disabled{opacity:.3;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-n.last{background:var(--or)}.btn-n.last:hover{background:#c74310}
+.btn-b{padding:13px 16px;background:none;border:2px solid var(--ln);border-radius:10px;font-size:14px;font-family:inherit;color:var(--mt);cursor:pointer;transition:.15s}
+.btn-b:hover{border-color:var(--mt);color:var(--dk)}
+.btn-b:disabled{opacity:.2;cursor:not-allowed}
+.btn-sk{font-size:12px;color:var(--mt);text-decoration:underline;cursor:pointer;background:none;border:none;font-family:inherit;margin-left:auto}
+
+/* ── WELCOME ── */
+.wc{text-align:center;padding:16px 0 40px}
+.wc-ico{font-size:56px;margin-bottom:24px;display:block}
+.wc-t{font-size:30px;font-weight:700;line-height:1.2;margin-bottom:14px}
+.wc-t span{color:var(--bl)}
+.wc-s{font-size:15px;color:var(--mid);max-width:400px;margin:0 auto 36px;line-height:1.7}
+.wc-tags{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:36px}
+.wc-tag{padding:8px 16px;background:var(--wh);border:1.5px solid var(--ln);border-radius:8px;font-size:12px;color:var(--mid);font-weight:500}
+.wc-start{padding:15px 52px;background:var(--or);color:var(--wh);border:none;border-radius:12px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;transition:.2s}
+.wc-start:hover{background:#c74310;transform:translateY(-2px);box-shadow:0 8px 28px rgba(231,81,19,.3)}
+
+/* ════════════ RAPPORT ════════════ */
+.rpt{max-width:720px;margin:0 auto;padding:80px 24px 80px}
+.rpt-head{margin-bottom:40px}
+.rpt-super{font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-bottom:8px}
+.rpt-title{font-size:26px;font-weight:700;margin-bottom:6px}
+.rpt-meta{font-size:13px;color:var(--mt)}
+.verdict{padding:26px 30px;border-radius:14px;display:flex;align-items:flex-start;gap:18px;margin-bottom:32px;border:2px solid}
+.vg{background:#f0fdf4;border-color:#86efac}.vy{background:#fffbeb;border-color:#fde068}.vr{background:#fff1f2;border-color:#fca5a5}
+.v-ico{font-size:38px;flex-shrink:0;line-height:1}
+.v-title{font-size:18px;font-weight:700;margin-bottom:5px}
+.v-desc{font-size:14px;line-height:1.6;color:var(--mid)}
+.dpia-row{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:8px;border:1.5px solid;font-size:13.5px;font-weight:500;margin-bottom:28px}
+.dp-v{background:#fff1f2;border-color:#fca5a5;color:#9f1239}
+.dp-w{background:#fffbeb;border-color:#fde068;color:#78350f}
+.dp-o{background:#f0f9ff;border-color:#bae6fd;color:#0c4a6e}
+.rsec{margin-bottom:36px}
+.rsec-t{font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);padding-bottom:10px;border-bottom:1px solid var(--ln);margin-bottom:16px}
+.risk-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.rk{padding:13px 14px;border-radius:10px;border:1.5px solid;text-align:center}
+.rk-lv{display:block;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px}
+.rk-cat{font-size:13px;font-weight:500}
+.rk.laag{background:#f0fdf4;border-color:#86efac;color:#166534}
+.rk.middel{background:#fffbeb;border-color:#fde068;color:#713f12}
+.rk.hoog{background:#fff7ed;border-color:#fdba74;color:#9a3412}
+.rk.kritiek{background:#fff1f2;border-color:#fca5a5;color:#9f1239}
+.act-l{display:flex;flex-direction:column;gap:8px}
+.act{display:flex;align-items:flex-start;gap:10px;padding:12px 15px;border-radius:9px;font-size:13.5px;line-height:1.55}
+.act-v{background:#fff1f2}.act-a{background:#fffbeb}
+.bdg{font-size:9.5px;font-weight:700;padding:3px 8px;border-radius:4px;white-space:nowrap;flex-shrink:0;margin-top:2px;text-transform:uppercase;letter-spacing:.3px}
+.bv{background:var(--r);color:var(--wh)}.ba{background:var(--y);color:var(--wh)}
+.doc-tags{display:flex;flex-wrap:wrap;gap:8px}
+.dt{padding:8px 15px;border-radius:7px;font-size:13px;font-weight:500}
+.dt-r{background:#fff1f2;color:#9f1239;border:1px solid #fca5a5}
+.dt-y{background:#fffbeb;color:#78350f;border:1px solid #fde068}
+.dt-n{background:var(--bg);color:var(--mid);border:1px solid var(--ln)}
+.esc-l{display:flex;flex-direction:column;gap:8px}
+.esc{padding:13px 16px;border-radius:10px;border:1.5px solid;display:flex;align-items:flex-start;gap:10px}
+.e-fg{background:rgba(137,15,117,.05);border-color:rgba(137,15,117,.2);color:#6b0d5d}
+.e-ci{background:rgba(231,81,19,.05);border-color:rgba(231,81,19,.2);color:#9a2f08}
+.e-ju{background:rgba(57,178,198,.05);border-color:rgba(57,178,198,.3);color:var(--bl2)}
+.e-in{background:#f0fdf4;border-color:#86efac;color:#166534}
+.e-di{background:#fff1f2;border-color:#fca5a5;color:#9f1239}
+.e-ic{flex-shrink:0;font-size:15px}
+.e-role{font-weight:700;font-size:13px;display:block}
+.e-why{font-size:11.5px;opacity:.75;margin-top:1px}
+.oq-l{display:flex;flex-direction:column;gap:6px}
+.oq{padding:10px 14px;background:#fffbeb;border-left:3px solid var(--y);border-radius:0 8px 8px 0;font-size:13px;color:#78350f}
+.sum-g{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.sum-box{background:var(--wh);border:1px solid var(--ln);border-radius:10px;padding:16px 18px}
+.sum-lbl{font-size:9.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--mt);margin-bottom:10px}
+.sum-row{font-size:13px;padding:2px 0;color:var(--mid)}
+.sum-row strong{color:var(--dk);font-weight:600}
+.aud-t{width:100%;border-collapse:collapse;font-size:12.5px}
+.aud-t th{padding:8px 12px;text-align:left;font-weight:700;color:var(--mt);border-bottom:2px solid var(--ln);font-size:10px;letter-spacing:.8px;text-transform:uppercase}
+.aud-t td{padding:8px 12px;border-bottom:1px solid var(--ln);color:var(--mid);vertical-align:top}
+.aud-t td:last-child{color:var(--dk);font-weight:500}
+.aud-t tr:hover td{background:#fafbfc}
+
+/* ── LEVERANCIERSBEOORDELING BLOK ── */
+.lev-blok{background:var(--wh);border:1.5px solid var(--ln);border-radius:14px;overflow:hidden;margin-bottom:36px}
+.lev-head{padding:18px 22px;background:linear-gradient(135deg,#f0f9ff,#e8f5f8);border-bottom:1px solid var(--ln);display:flex;align-items:center;gap:12px}
+.lev-head-t{font-size:15px;font-weight:700;color:var(--dk)}
+.lev-head-s{font-size:12px;color:var(--mid);margin-top:2px}
+.lev-steps{display:flex;padding:20px 22px;gap:0;overflow-x:auto}
+.lev-step{flex:1;min-width:120px;position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 8px}
+.lev-step:not(:last-child)::after{content:'→';position:absolute;right:-8px;top:14px;color:var(--mt);font-size:14px;z-index:1}
+.ls-num{width:30px;height:30px;border-radius:50%;background:var(--bl);color:var(--wh);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-bottom:8px;flex-shrink:0}
+.ls-t{font-size:12px;font-weight:700;color:var(--dk);margin-bottom:3px}
+.ls-s{font-size:11px;color:var(--mid);line-height:1.4}
+.lev-body{padding:16px 22px 20px;border-top:1px solid var(--ln)}
+.lev-items{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.lev-item{display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--mid);padding:10px 12px;background:var(--bg);border-radius:8px}
+.lev-item strong{color:var(--dk);font-weight:600;display:block;font-size:12.5px;margin-bottom:2px}
+.lev-item-ic{flex-shrink:0;font-size:14px;margin-top:1px}
+.enisa-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:14px}
+.enisa-pill{padding:7px 10px;background:rgba(57,178,198,.07);border:1px solid rgba(57,178,198,.2);border-radius:7px;font-size:11px;font-weight:600;color:var(--bl2);text-align:center}
+
+/* ── EMAIL MODAL ── */
+.modal-bg{position:fixed;inset:0;background:rgba(26,33,53,.45);z-index:500;display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeIn .2s ease}
+.modal{background:var(--wh);border-radius:16px;padding:32px 36px;max-width:480px;width:100%;box-shadow:0 24px 80px rgba(0,0,0,.18);animation:slideR .2s ease}
+.modal-t{font-size:18px;font-weight:700;margin-bottom:8px}
+.modal-s{font-size:13.5px;color:var(--mid);margin-bottom:22px;line-height:1.55}
+.modal-in{width:100%;padding:13px 16px;border:2px solid var(--ln);border-radius:10px;font-size:14px;font-family:inherit;outline:none;transition:.2s;margin-bottom:16px}
+.modal-in:focus{border-color:var(--bl);box-shadow:0 0 0 3px rgba(57,178,198,.1)}
+.modal-summary{background:var(--bg);border-radius:10px;padding:14px 16px;font-size:12.5px;color:var(--mid);line-height:1.6;margin-bottom:20px;max-height:140px;overflow-y:auto}
+.modal-summary strong{color:var(--dk)}
+.modal-btns{display:flex;gap:10px;justify-content:flex-end}
+.btn-modal-p{padding:11px 24px;background:var(--or);color:var(--wh);border:none;border-radius:8px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:.2s}
+.btn-modal-p:hover{background:#c74310}
+.btn-modal-s{padding:11px 18px;background:none;border:2px solid var(--ln);border-radius:8px;font-size:13px;font-family:inherit;color:var(--mid);cursor:pointer;transition:.15s}
+.btn-modal-s:hover{border-color:var(--mt);color:var(--dk)}
+.modal-note{font-size:11.5px;color:var(--mt);margin-top:12px;line-height:1.5}
+
+/* ── REPORT FOOTER ── */
+.rpt-foot{margin-top:44px;padding-top:22px;border-top:1px solid var(--ln);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.rpt-foot-note{font-size:12px;color:var(--mt)}
+.rpt-foot-btns{display:flex;gap:10px;flex-wrap:wrap}
+.btn-print{padding:10px 22px;background:var(--dk);color:var(--wh);border:none;border-radius:8px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:.2s}
+.btn-print:hover{background:var(--bl2)}
+.btn-mail{padding:10px 22px;background:var(--wh);color:var(--mid);border:2px solid var(--ln);border-radius:8px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:.2s}
+.btn-mail:hover{border-color:var(--bl);color:var(--bl2)}
+
+@media(max-width:580px){
+  .tb{padding:0 16px}.pipe{padding:12px 16px}.inner{padding:40px 16px 80px}
+  .q-text{font-size:21px}.choice-g{grid-template-columns:1fr}.c3r{gap:7px}
+  .rpt{padding:70px 16px 60px}.sum-g{grid-template-columns:1fr}
+  .rpt-foot{flex-direction:column;align-items:flex-start}
+  .lev-items{grid-template-columns:1fr}.enisa-grid{grid-template-columns:1fr 1fr}
+  .lev-steps{flex-direction:column;gap:8px}
+  .lev-step:not(:last-child)::after{content:'↓';right:auto;top:auto;bottom:-12px;left:50%;transform:translateX(-50%)}
+  .modal{padding:24px 20px}
+}
+@media print{
+  .tb,.pipe,.btn-b,.btn-n,.btn-rst,.rpt-foot-btns,.modal-bg{display:none!important}
+  body{background:var(--wh)}.rpt{padding:0}
+}
+</style>
+</head>
+<body>
+<header class="tb">
+  <div style="display:flex;align-items:center">
+    <div class="logo"><span class="lE">EEM</span><span class="lH">♥</span><span class="lA">HART</span></div>
+    <div class="logo-div"></div>
+    <span class="logo-sub">Situatiebeoordeling</span>
+  </div>
+  <div class="tb-r">
+    <span class="tb-c" id="tbC"></span>
+    <button class="btn-rst" onclick="doRestart()">↺ Opnieuw</button>
+  </div>
+</header>
+<div class="pipe" id="pipe"><div class="pipe-in" id="pipeIn"></div></div>
+<div class="stage" id="app"></div>
+<div id="emailModal" style="display:none"></div>
+
+<script>
+// ══ STATE ══
+const A={};let cur='welcome',dir=1,openTip=null;
+
+// ══ HELPERS ══
+const hasPG=()=>A.pg!=='nee';
+const hasSup=()=>A.ext==='ja';
+const isAI=()=>A.useai==='ja';
+const buiten=()=>A.leer==='ja'||A.ops==='buiten_eer';
+const hasGZ=()=>A.gz==='ja';
+const ord=['laag','middel','hoog','kritiek'];
+const bump=(a,b)=>ord.indexOf(b)>ord.indexOf(a)?b:a;
+const fmtA=v=>{
+  if(v===undefined||v===null)return'—';
+  if(Array.isArray(v))return v.length?v.join(', '):'—';
+  if(v==='ja')return'✓ Ja';if(v==='nee')return'✗ Nee';
+  if(v==='wn')return'⚠ Nader te bepalen';return v;
+};
+
+// ══ PHASES ══
+const PM=[
+  {id:'intake',lbl:'Intake',icon:'1'},{id:'gegevens',lbl:'Gegevens',icon:'2'},
+  {id:'context',lbl:'Context',icon:'3'},{id:'leverancier',lbl:'Leverancier',icon:'4'},
+  {id:'risico',lbl:'Risico',icon:'5'},{id:'beveiliging',lbl:'Beveiliging',icon:'6'},
+  {id:'ai',lbl:'AI',icon:'7'},
+];
+
+// ══ STEPS ══
+const S=[
+  {id:'welcome',phase:'—',type:'welcome',show:()=>true},
+
+  {id:'naam',phase:'intake',type:'text',req:true,
+    q:'Hoe heet dit initiatief of project?',
+    hint:'Naam van de tool, app, werkwijze of leverancier.',
+    ph:'Bijv. "Zorgviewer app", "Transcriptietool voor rapportages"…',
+    field:'naam',show:()=>true},
+
+  {id:'type',phase:'intake',type:'choice',auto:true,
+    q:'Betreft het een nieuw initiatief of een aanpassing?',
+    field:'type',show:()=>true,
+    opts:[{v:'nieuw',ico:'✦',lbl:'Nieuw initiatief',sub:'Iets wat Eemhart nog niet deed'},
+          {v:'aanpassing',ico:'↺',lbl:'Aanpassing',sub:'Een bestaande situatie verandert'}]},
+
+  {id:'cat',phase:'intake',type:'chips',
+    q:'Wat houdt het concreet in?',
+    hint:'Kies alles wat van toepassing is.',
+    field:'cat',show:()=>true,
+    opts:[
+      {v:'app',lbl:'Nieuwe software of app',tip:'Een nieuw softwarepakket, platform of applicatie dat Eemhart wil gaan gebruiken.'},
+      {v:'werkwijze',lbl:'Gewijzigde werkwijze',tip:'Een bestaand werkproces verandert — ook als er geen nieuwe software bij komt kijken.'},
+      {v:'delen',lbl:'Gegevens uitwisselen',tip:'Informatie, inclusief mogelijk persoonsgegevens, gaat naar een andere partij — intern of extern.'},
+      {v:'lev',lbl:'Nieuwe leverancier',tip:'Een nieuwe externe partij gaat diensten of producten leveren aan Eemhart.'},
+      {v:'koppeling',lbl:'Koppeling tussen systemen',tip:'Twee systemen gaan automatisch gegevens uitwisselen, bijv. ECD koppelt aan planningssoftware.'},
+      {v:'anders',lbl:'Anders',tip:'Iets dat niet in de andere categorieën past. Omschrijf het doel bij de volgende vraag.'}
+    ]},
+
+  {id:'doel',phase:'intake',type:'text',req:false,
+    q:'Wat is het beoogde doel of de aanleiding?',
+    hint:'Kort omschreven — één zin is voldoende.',
+    ph:'Bijv. "Efficiënter rapporteren" of "Digitale cliëntcommunicatie"…',
+    field:'doel',show:()=>true},
+
+  {id:'eig',phase:'intake',type:'text',req:false,
+    q:'Wie is de initiatiefnemer?',
+    hint:'Naam of functie van de verantwoordelijke.',
+    ph:'Naam of functie…',field:'eig',show:()=>true},
+
+  {id:'afd',phase:'intake',type:'text',req:false,
+    q:'Welke afdeling of locatie is betrokken?',
+    ph:'Bijv. "Zorg Amersfoort", "ICT-afdeling"…',
+    field:'afd',show:()=>true},
+
+  {id:'pg',phase:'gegevens',type:'c3',auto:true,
+    q:'Worden er gegevens over personen verwerkt?',
+    hint:'Namen, cliëntnummers, e-mailadressen, BSN — alles herleidbaar naar een persoon.',
+    short:'Ook combinaties van gegevens die samen herleidbaar zijn tellen mee. Bij twijfel: ga er voorzichtigheidshalve vanuit dat er persoonsgegevens zijn.',
+    deep:'Persoonsgegevens zijn onder AVG art. 4 lid 1 alle informatie betreffende een geïdentificeerde of identificeerbare natuurlijke persoon. Pseudonieme gegevens vallen hier ook onder. Elke verwerking vereist een geldige grondslag (art. 6 AVG) en opname in het verwerkingsregister van Eemhart.',
+    field:'pg',show:()=>true,
+    c3tips:{
+      ja:'Er worden gegevens verwerkt die direct of indirect herleidbaar zijn naar een persoon — naam, nummer, adres, IP-adres, etc.',
+      nee:'Er worden uitsluitend anonieme of volledig geaggregeerde gegevens verwerkt die niet naar een persoon herleid kunnen worden.',
+      wn:'Bij twijfel gaan we er voorzichtigheidshalve vanuit dat er persoonsgegevens zijn en doorlopen we de volledige beoordeling.'
+    },
+    notices:{wn:{t:'nn',m:'Bij twijfel gaan we er vanuit dat er persoonsgegevens zijn.'}}},
+
+  {id:'gz',phase:'gegevens',type:'c3',auto:true,
+    q:'Gaat het om gezondheidsinformatie?',
+    hint:'Diagnoses, medicatie, behandelverslagen, zorgplannen, begeleidingsdossiers.',
+    short:'Gezondheidsgegevens zijn een "bijzondere categorie" met extra bescherming. Een aanvullende grondslag is altijd vereist.',
+    deep:'Gezondheidsgegevens vallen onder AVG art. 9 als bijzondere categorie. Verwerking is in principe verboden, tenzij een uitzondering van art. 9 lid 2 van toepassing is — in de zorg doorgaans sub h (behandelrelatie/beroepsgeheim). Een DPIA is bij gezondheidsgegevens vrijwel altijd vereist.',
+    field:'gz',show:()=>hasPG(),
+    c3tips:{
+      ja:'Diagnoses, medicatie, behandelverslagen, zorgplannen, begeleidingsdossiers, psychologische rapportages — alles over de gezondheid of behandeling van een persoon.',
+      nee:'Alleen financiële, administratieve of andere niet-medische gegevens. Geen informatie over de gezondheidstoestand, behandeling of zorg van personen.',
+      wn:'We behandelen dit voorzichtigheidshalve als gezondheidsgegevens. Dit wordt als uitzoekpunt opgenomen in het rapport.'
+    },
+    notices:{ja:{t:'nw',m:'Gezondheidsgegevens vragen om aanvullende maatregelen en een aparte grondslag.'}}},
+
+  {id:'wie',phase:'gegevens',type:'chips',
+    q:'Van wie zijn de betrokken persoonsgegevens?',
+    hint:'Kies alles wat van toepassing is.',
+    field:'wie',show:()=>hasPG(),
+    opts:[
+      {v:'cliënten',lbl:'Cliënten',tip:'Gegevens van mensen die zorg of begeleiding ontvangen van Eemhart.'},
+      {v:'medewerkers',lbl:'Medewerkers',tip:'Gegevens van eigen personeel, inclusief uitzendkrachten, zzp-ers en stagiairs.'},
+      {v:'vrijwilligers',lbl:'Vrijwilligers',tip:'Gegevens van mensen die onbetaald werk doen voor Eemhart.'},
+      {v:'mantelzorgers',lbl:'Familie of mantelzorgers',tip:'Gegevens van familie, vrienden of andere informele zorgverleners van cliënten.'},
+      {v:'leveranciers',lbl:'Contacten bij leveranciers',tip:'Contactgegevens van medewerkers bij toeleveranciers of zakelijke partners — bijv. naam en e-mail.'},
+      {v:'anderen',lbl:'Anderen',tip:'Andere categorieën, bijv. bezoekers, studenten of samenwerkingspartners.'}
+    ]},
+
+  {id:'grond',phase:'context',type:'sel',auto:true,
+    q:'Wat is de juridische grondslag voor de verwerking?',
+    hint:'De wettelijke basis die het gebruik van deze gegevens legitimeert.',
+    short:'Elke verwerking van persoonsgegevens vereist een geldige grondslag. Zonder grondslag is verwerking niet toegestaan, ongeacht het doel.',
+    deep:'AVG art. 6 noemt zes grondslagen: (a) toestemming, (b) uitvoering overeenkomst, (c) wettelijke verplichting, (d) vitaal belang, (e) publieke taak, (f) gerechtvaardigd belang. Voor bijzondere persoonsgegevens geldt aanvullend art. 9. In de zorg is de meest gebruikte grondslag art. 6 lid 1 sub b (zorgovereenkomst) gecombineerd met art. 9 lid 2 sub h.',
+    field:'grond',show:()=>hasPG(),
+    opts:[{v:'overeenkomst',lbl:'Uitvoering van een overeenkomst (bijv. zorgafspraak)',
+          tip:'De meest gebruikte grondslag in de zorg. Van toepassing als verwerking nodig is voor de zorgafspraak of het zorgcontract met de betrokkene zelf.',
+          deep:'AVG art. 6 lid 1 sub b. Vereist een rechtstreekse relatie tussen de verwerking en de overeenkomst. De betrokkene moet zelf partij zijn — niet toepasbaar voor derde partijen zoals familieleden.'},
+      {v:'wettelijk',lbl:'Wettelijke verplichting',
+          tip:'Van toepassing als een wet Eemhart verplicht bepaalde gegevens bij te houden, bijv. voor de Wtza-registratie of fiscale bewaarplicht.',
+          deep:'AVG art. 6 lid 1 sub c. De verplichting moet specifiek gericht zijn op de verwerkingsverantwoordelijke. Een algemene wettelijke plicht volstaat niet. Documenteer welke wettelijke bepaling van toepassing is.'},
+      {v:'toestemming',lbl:'Toestemming van de betrokkene',
+          tip:'Alleen als de betrokkene vrijwillig, specifiek en geïnformeerd toestemming geeft. Lastig toepasbaar in de zorg door de afhankelijkheidsrelatie.',
+          deep:'AVG art. 6 lid 1 sub a + art. 7. In de zorg is toestemming problematisch: de machtsverhouding maakt "vrijwilligheid" twijfelachtig. Bij intrekking moeten gegevens worden verwijderd. Niet geschikt als hoofdgrondslag voor standaard zorgprocessen.'},
+      {v:'vitaal',lbl:'Vitaal belang',
+          tip:'Uitsluitend in acute noodsituaties waarbij het leven van de betrokkene direct gevaar loopt én geen andere grondslag mogelijk is.',
+          deep:'AVG art. 6 lid 1 sub d. Zeer beperkt toepasbaar — alleen als de betrokkene fysiek of juridisch niet in staat is toestemming te geven. Na de noodsituatie vervalt de grondslag.'},
+      {v:'publiek',lbl:'Publieke taak',
+          tip:'Van toepassing op wettelijke overheidstaken. Zelden van toepassing voor particuliere zorgaanbieders.',
+          deep:'AVG art. 6 lid 1 sub e. Vereist een wettelijke taak van algemeen belang of uitoefening van openbaar gezag. Particuliere zorginstellingen kunnen dit doorgaans niet inroepen zonder expliciete wettelijke grondslag.'},
+      {v:'gerechtv',lbl:'Gerechtvaardigd belang',
+          tip:'Bruikbaar als Eemharts belang zwaarder weegt dan de privacy van betrokkene. Vereist een afweging (LIA). Niet toepasbaar bij gezondheidsgegevens.',
+          deep:'AVG art. 6 lid 1 sub f. Vereist drie stappen: (1) legitiem belang vaststellen, (2) noodzakelijkheid toetsen, (3) Legitimate Interest Assessment (LIA) uitvoeren en documenteren. Bij gezondheidsgegevens (art. 9) is deze grondslag NIET beschikbaar.'},
+      {v:'wn',lbl:'Dat is nog niet bepaald',
+          tip:'De grondslag moet worden vastgesteld vóór de verwerking start. We markeren dit als verplicht uitzoekpunt.',
+          deep:'Verwerking zonder vastgelegde grondslag is in strijd met AVG art. 5 lid 1 sub a (rechtmatigheid). De grondslag moet schriftelijk worden onderbouwd en opgenomen in het verwerkingsregister.'}]},
+
+  {id:'ops',phase:'context',type:'sel',auto:true,
+    q:'Waar worden de gegevens opgeslagen of verwerkt?',
+    hint:'De geografische locatie of omgeving waar gegevens staan.',
+    short:'Opslag buiten Europa brengt extra verplichtingen mee. Niet alle landen bieden hetzelfde beschermingsniveau als de EU.',
+    deep:'AVG hoofdstuk V (art. 44–49) regelt internationale doorgiften. Buiten de EER zijn passende waarborgen vereist: Standard Contractual Clauses (SCCs, besluit 2021/914), binding corporate rules of een adequaatheidsbesluit. Let op de CLOUD Act (VS): Amerikaanse autoriteiten kunnen toegang claimen tot data ook bij opslag in Europa.',
+    field:'ops',show:()=>hasPG(),
+    opts:[{v:'eigen',lbl:'Eigen servers van Eemhart (on-premise)',
+          tip:'Gegevens staan op servers die Eemhart zelf beheert en beveiligt. Geen externe cloudprovider betrokken.'},
+      {v:'cloud_nl',lbl:'Cloud of SaaS in Nederland',
+          tip:'Software of opslag bij een Nederlands bedrijf. Valt volledig onder EU/NL-wetgeving. Controleer wel eventuele subverwerkers (bijv. AWS Frankfurt of Azure Dublin ≠ NL).',
+          deep:'Controleer of de Nederlandse provider zelf ook subverwerkers buiten de EER inschakelt. Dit is bij cloudplatforms vaak het geval. Vraag een lijst van subverwerkers op via de verwerkersovereenkomst.'},
+      {v:'cloud_eu',lbl:'Cloud of SaaS elders in de EU/EER',
+          tip:'SaaS of clouddienst elders in Europa. Valt onder EU-wetgeving. Controleer of er subverwerkers buiten de EER worden ingeschakeld.',
+          deep:'Alle EU-lidstaten vallen onder de AVG. Let op: servers in Zwitserland (EER-kandidaat maar geen lidstaat) en het VK (adequaatheidsbesluit) hebben een aparte status. Controleer de DPA-certificering van de provider.'},
+      {v:'buiten_eer',lbl:'Buiten Europa (VS, India, Azië…)',
+          tip:'Hoog risico: opslag of verwerking buiten Europa vereist aanvullende juridische waarborgen. Bij gezondheidsgegevens is extra voorzichtigheid geboden.',
+          deep:'AVG art. 44-49. Vereiste waarborgen: Standard Contractual Clauses (SCCs, Commissiebesluit 2021/914), binding corporate rules of adequaatheidsbesluit. Let op de US CLOUD Act: Amerikaanse autoriteiten kunnen data opeisen, ook bij opslag in Europa. VS heeft het EU-US Data Privacy Framework (2023) maar alleen voor gecertificeerde organisaties.'},
+      {v:'wn',lbl:'Dat is nog niet bekend',
+          tip:'De opslaglocatie moet worden geverifieerd bij de leverancier vóór ingebruikname. We markeren dit als uitzoekpunt.',
+          deep:'Vraag schriftelijk bij de leverancier op: (1) in welk land de data staat, (2) welke cloudprovider wordt gebruikt, (3) worden subverwerkers in derde landen ingeschakeld? Leg dit vast in de verwerkersovereenkomst.'}]},
+
+  {id:'kop',phase:'context',type:'c3',auto:true,
+    q:'Worden gegevens gekoppeld aan andere systemen?',
+    hint:'Bijv. koppeling met het ECD, planningssysteem of HR-platform.',
+    short:'Het combineren van gegevensbronnen vergroot het risico voor betrokkenen. Het is een zwaarwegende factor in de DPIA-beoordeling.',
+    deep:'Het koppelen van gegevensverzamelingen is door de EDPB aangemerkt als een van de negen criteria die een DPIA (bijna) verplicht maken (EDPB Guidelines WP248). Hoe meer systemen worden gekoppeld, hoe groter het potentiële privacyrisico voor betrokkenen.',
+    field:'kop',show:()=>hasPG()},
+
+  {id:'der',phase:'context',type:'c3',auto:true,
+    q:'Worden gegevens gedeeld met partijen buiten Eemhart?',
+    hint:'Andere zorgaanbieders, gemeenten, verzekeraars, ketenpartners.',
+    short:'Verstrekking aan derden vereist een wettelijke grondslag en — als zij als verwerker optreden — een verwerkersovereenkomst.',
+    deep:'Gegevensverstrekking valt onder AVG art. 6. Als de ontvangende partij als verwerker optreedt, is een verwerkersovereenkomst (AVG art. 28) verplicht. Bij uitwisseling in de zorgketen gelden ook de Wegiz en WGBO art. 457.',
+    field:'der',show:()=>hasPG()},
+
+  {id:'ext',phase:'leverancier',type:'choice',auto:true,
+    q:'Is er een externe leverancier of partij betrokken?',
+    hint:'Een partij buiten Eemhart die software levert, diensten verleent of toegang heeft tot gegevens.',
+    field:'ext',show:()=>{
+      // Auto-set to 'ja' if supplier/app/koppeling already chosen in intake
+      const catSup=['lev','app','koppeling','delen'];
+      if((A.cat||[]).some(c=>catSup.includes(c))){A.ext='ja';return false;}
+      return true;
+    },
+    opts:[
+      {v:'ja',ico:'🏢',lbl:'Ja',sub:'Er is een externe partij betrokken',
+        tip:'Van toepassing als een externe partij software levert, diensten verleent of toegang heeft tot gegevens van Eemhart.'},
+      {v:'nee',ico:'🔒',lbl:'Nee',sub:'Alles blijft intern binnen Eemhart',
+        tip:'Alle verwerking vindt intern bij Eemhart plaats — geen externe software, platforms of dienstverleners met toegang tot gegevens.'}
+    ]},
+
+  {id:'ltog',phase:'leverancier',type:'c3',auto:true,
+    q:'Heeft de leverancier toegang tot persoonsgegevens?',
+    hint:'Direct of indirect inzage in gegevens van cliënten of medewerkers.',
+    short:'Als de leverancier persoonsgegevens kan inzien of verwerken, is een verwerkersovereenkomst wettelijk verplicht — ook als die toegang zelden wordt gebruikt.',
+    deep:'AVG art. 28 verplicht een schriftelijke verwerkersovereenkomst wanneer een derde namens de verwerkingsverantwoordelijke persoonsgegevens verwerkt. De overeenkomst moet minimaal de elementen van art. 28 lid 3 bevatten: onderwerp, duur, aard, doel, type gegevens, betrokkenen en verplichtingen van de verantwoordelijke.',
+    field:'ltog',show:()=>hasSup()&&hasPG(),
+    c3tips:{
+      ja:'De leverancier kan inloggen op systemen met persoonsgegevens, ontvangt bestanden met persoonsgegevens, of verwerkt deze tijdens dienstverlening (bijv. hosting, support, analyses).',
+      nee:'De leverancier levert alleen software of hardware zonder zelf gegevens in te zien. Typisch bij puur technische componenten zonder dataniveau-toegang.',
+      wn:'Verificeer dit bij de leverancier. Controleer de serviceovereenkomst en functionele beschrijving op toegangsrechten.'
+    },
+    notices:{ja:{t:'nw',m:'Een verwerkersovereenkomst is in dit geval wettelijk verplicht.'}}},
+
+  {id:'leer',phase:'leverancier',type:'c3',auto:true,
+    q:'Is de leverancier of zijn infrastructuur buiten Europa gevestigd?',
+    hint:'Servers of vestigingen in de VS, India, Azië of andere landen buiten de EU/EER.',
+    short:'Doorgifte buiten de EER is alleen toegestaan met passende juridische waarborgen, zoals standaardcontractbepalingen.',
+    deep:'AVG art. 44 verbiedt doorgifte naar derde landen zonder passende bescherming. Toegestane waarborgen: SCCs (Commissiebesluit 2021/914), binding corporate rules (art. 47) of adequaatheidsbesluit. Let op CLOUD Act bij US-cloudproviders.',
+    field:'leer',show:()=>hasSup(),
+    notices:{ja:{t:'nw',m:'Doorgifte buiten de EER vereist aanvullende juridische afspraken.'}}},
+
+  {id:'lcert',phase:'leverancier',type:'c3',auto:true,
+    q:'Beschikt de leverancier over een erkende beveiligingscertificering?',
+    hint:'ISO 27001, NEN 7510 of vergelijkbaar.',
+    short:'Certificering biedt aantoonbare zekerheid over het beveiligingsniveau. Ontbreekt dit, dan is aanvullende due diligence noodzakelijk.',
+    deep:'NEN 7510:2017 is de zorgsector-norm voor informatiebeveiliging in Nederland, aangewezen door de AP. ISO 27001:2022 is de internationale equivalent. Vraag bij certificering ook de verklaring van toepasselijkheid (SoA) op. Zonder certificaat zijn alternatieve zekerstellingen nodig: auditrecht, SoC2, ISAE 3402 of TPM.',
+    field:'lcert',show:()=>hasSup()},
+
+  {id:'dprof',phase:'risico',type:'c3',auto:true,
+    q:'Neemt het systeem zelfstandig beslissingen op basis van persoonsgegevens?',
+    hint:'Algoritmen of AI die bepalen welke zorg iemand krijgt, risico\'s inschatten of triage uitvoeren.',
+    short:'Geautomatiseerde besluitvorming met significante gevolgen is zwaar gereguleerd. Mensen hebben het recht om zo\'n besluit te betwisten.',
+    deep:'AVG art. 22 verbiedt — met uitzonderingen — volledig geautomatiseerde besluiten met rechtsgevolgen of vergelijkbare significante gevolgen. Uitzonderingen vereisen menselijke tussenkomst, recht op betwisting en informatieplicht (art. 13/14). In de zorg is dit extra relevant bij triage- en risicoscoringssystemen.',
+    field:'dprof',show:()=>hasPG()},
+
+  {id:'dmon',phase:'risico',type:'c3',auto:true,
+    q:'Worden personen structureel gevolgd of gemonitord?',
+    hint:'Locatieregistratie, cameratoezicht, app-gebruik bijhouden, logging van medewerkeractiviteit.',
+    short:'Systematische monitoring van personen is door de EDPB aangemerkt als criterium dat een DPIA noodzakelijk maakt.',
+    deep:'EDPB Guidelines WP248 noemen "systematische monitoring van betrokkenen" als één van de negen DPIA-criteria. Bij twee of meer criteria geldt DPIA-plicht. Monitoring van medewerkers raakt ook de WOR art. 27 lid 1 sub l (instemmingsrecht OR bij elektronische controlemiddelen).',
+    field:'dmon',show:()=>hasPG()},
+
+  {id:'dinno',phase:'risico',type:'c3',auto:true,
+    q:'Betreft het een nieuwe of voor Eemhart onbewezen technologie?',
+    hint:'Iets wat de organisatie nog niet eerder gebruikte of dat in de zorgsector nog niet breed bewezen is.',
+    short:'Nieuwe technologieën roepen onbekende risico\'s op. De AP en EDPB vereisen bij innovatieve technologie vrijwel altijd een DPIA.',
+    deep:'EDPB Guidelines WP248 en AP-richtsnoeren benoemen "gebruik van nieuwe technologieën" als zelfstandig DPIA-criterium. Dit geldt ook als de technologie elders bewezen is maar nieuw is voor de verwerkingsverantwoordelijke. De AP publiceert een lijst van verwerkingen waarvoor een DPIA altijd verplicht is.',
+    field:'dinno',show:()=>hasPG()},
+
+  {id:'dkwets',phase:'risico',type:'c3',auto:true,
+    q:'Zijn er kwetsbare personen bij betrokken?',
+    hint:'Cliënten met een beperking, kinderen, personen met psychische problematiek.',
+    short:'Kwetsbare groepen kunnen minder goed voor hun eigen belangen opkomen. Dat rechtvaardigt een hogere beschermingsdrempel.',
+    deep:'EDPB Guidelines WP248 benoemen "verwerking van gegevens over kwetsbare betrokkenen" als DPIA-criterium. Voor kinderen geldt extra bescherming (AVG overweging 38, art. 8). Wet zorg en dwang en Wvggz stellen aanvullende eisen aan omgang met gegevens van kwetsbare cliënten.',
+    field:'dkwets',show:()=>hasPG()},
+
+  {id:'smfa',phase:'beveiliging',type:'c3',auto:true,
+    q:'Is inloggen met meervoudige authenticatie (MFA) beschikbaar?',
+    hint:'Naast een wachtwoord een tweede verificatiestap, bijv. via een authenticator-app.',
+    short:'MFA is een basisvereiste voor systemen met gevoelige gegevens. Ontbreekt het, dan is het risico op onbevoegde toegang hoog.',
+    deep:'NEN 7510:2017 maatregel 9.4 en ISO 27001:2022 annex A.8.5 vereisen sterke authenticatie bij gevoelige systemen. De AP beschouwt het ontbreken van MFA als onvoldoende technische beveiliging (AVG art. 32). NIS2 art. 21 stelt aanvullende authenticatie-eisen. De Eemhart leveranciersbeoordeling vraag LT.04 controleert dit expliciet.',
+    field:'smfa',show:()=>true,
+    c3tips:{
+      ja:'MFA is beschikbaar en in gebruik: naast een wachtwoord is er een tweede verificatiestap, bijv. via een authenticator-app (TOTP), sms-code of hardwaretoken.',
+      nee:'Er is alleen een wachtwoord. Dit is onvoldoende voor systemen met gevoelige (zorg)gegevens. Dit vereist directe actie.',
+      wn:'Controleer dit bij de leverancier. Vraag specifiek of MFA beschikbaar is en of het verplicht kan worden gesteld voor alle gebruikers.'
+    },
+    notices:{nee:{t:'ns',m:'Geen MFA is een hoog beveiligingsrisico voor systemen met persoonsgegevens.'}}},
+
+  {id:'senc',phase:'beveiliging',type:'c3',auto:true,
+    q:'Worden gegevens versleuteld opgeslagen en verstuurd?',
+    hint:'Encryptie zorgt dat gegevens onleesbaar zijn voor onbevoegden, ook bij een datalek.',
+    short:'Versleuteling is een fundamentele technische maatregel. Transport via HTTPS/TLS, opslag met sterke encryptie (bijv. AES-256).',
+    deep:'AVG art. 32 verplicht passende technische maatregelen — encryptie wordt expliciet als voorbeeld genoemd. NEN 7510 maatregel 10.1 vereist encryptie voor opslag en transport van medische gegevens. Bij een datalek van goed versleutelde gegevens vervalt de meldplicht aan betrokkenen (AVG art. 34 lid 3 sub a).',
+    field:'senc',show:()=>true},
+
+  {id:'scont',phase:'beveiliging',type:'c3',auto:true,
+    q:'Is de beschikbaarheid kritisch voor de zorgverlening?',
+    hint:'Kunnen medewerkers of cliënten niet adequaat functioneren als het systeem uitvalt?',
+    short:'Kritische systemen vereisen expliciete SLA-afspraken, back-upmaatregelen en een herstelplan.',
+    deep:'NEN 7510 maatregel 17.2 vereist continuïteitsplanning voor kritische systemen. De IGJ-norm stelt eisen aan beschikbaarheid van patiëntinformatie. Leg minimaal vast in het contract: RTO (Recovery Time Objective), RPO (Recovery Point Objective) en back-upfrequentie.',
+    field:'scont',show:()=>true},
+
+  {id:'useai',phase:'ai',type:'c3',auto:true,
+    q:'Wordt er AI of geautomatiseerde intelligentie ingezet?',
+    hint:'Lerende algoritmen, taalmodellen, geautomatiseerde patroonherkenning of AI-gegenereerde adviezen.',
+    short:'AI-systemen stellen specifieke eisen op het gebied van transparantie, menselijk toezicht en datagebruik.',
+    deep:'Naast de AVG is de Europese AI-verordening (AI Act, 2024/1689) van toepassing. AI-systemen in de zorg vallen doorgaans onder "high-risk" (bijlage III categorie 5) met verplichtingen zoals conformiteitsbeoordeling, technische documentatie, risicobeheersysteem en transparantievereisten. De AI Act geldt voor high-risk systemen vanaf augustus 2026.',
+    field:'useai',show:()=>true,
+    c3tips:{
+      ja:'Elk systeem met lerende algoritmen, taalmodellen (bijv. ChatGPT, Copilot), geautomatiseerde patroonherkenning of AI-gegenereerde adviezen valt hieronder.',
+      nee:'Er worden alleen reguliere software, dashboards of statistische tools gebruikt zonder lerende of generatieve AI-componenten.',
+      wn:'Controleer bij de leverancier of er AI-componenten in de software zitten, ook als dit niet expliciet is aangegeven.'
+    }},
+
+  {id:'aicdat',phase:'ai',type:'c3',auto:true,
+    q:'Worden persoonsgegevens van cliënten als invoer gebruikt?',
+    hint:'Namen, dossierinfo, rapportages of andere cliëntinformatie als input voor de AI.',
+    short:'Het invoeren van cliëntgegevens in een externe AI-dienst is een verwerking die apart moet worden onderbouwd en contractueel vastgelegd.',
+    deep:'Invoer van persoonsgegevens in een externe AI-dienst vereist: (1) verwerkersovereenkomst (AVG art. 28), (2) controle op subverwerkers, (3) verificatie dat de leverancier gegevens niet voor training gebruikt zonder grondslag, (4) beoordeling opslaglocatie en -termijn van prompts. Zie EDPB Guidelines 05/2023 over generatieve AI.',
+    field:'aicdat',show:()=>isAI(),
+    notices:{ja:{t:'nw',m:'Controleer of de AI-leverancier gegevens opslaat, deelt of voor training gebruikt.'}}},
+
+  {id:'aitrain',phase:'ai',type:'c3',auto:true,
+    q:'Gebruikt de leverancier ingevoerde data voor het trainen van het AI-model?',
+    hint:'Verbetert het AI-systeem zich op basis van wat gebruikers invoeren?',
+    short:'Gebruik van persoonsgegevens voor AI-training vereist een expliciete grondslag en is bij gezondheidsgegevens vrijwel nooit toegestaan.',
+    deep:'Het trainen van AI-modellen met persoonsgegevens is een afzonderlijk verwerkingsdoel dat een eigen grondslag vereist (AVG art. 6, bij gezondheidsgegevens ook art. 9). Vrijwel altijd is uitdrukkelijke toestemming (opt-in) nodig met recht van bezwaar. EDPB Guidelines 05/2023 stelt aanvullende eisen. Controleer de privacy policy en verwerkersovereenkomst van de leverancier expliciet op dit punt.',
+    field:'aitrain',show:()=>isAI(),
+    notices:{ja:{t:'ns',m:'Gebruik van (gezondheids)gegevens voor AI-training is bijna nooit toegestaan. Raadpleeg de FG vóór verder gebruik.'}}},
+
+  {id:'aictrl',phase:'ai',type:'c3',auto:true,
+    q:'Is er altijd menselijke beoordeling van de AI-uitkomst vóór gebruik?',
+    hint:'Een bevoegde medewerker beoordeelt de AI-uitkomst voordat er actie op wordt genomen.',
+    short:'"Human in the loop" is bij geautomatiseerde besluitvorming met significante gevolgen in de zorg wettelijk vereist.',
+    deep:'AVG art. 22 vereist menselijke tussenkomst bij geautomatiseerde besluiten met rechtsgevolgen of vergelijkbare significante gevolgen. In de zorg geldt dit voor beslissingen over behandeling, medicatie of triage. De zorgprofessional blijft te allen tijde verantwoordelijk voor de zorgbeslissing. Documenteer het menselijk toezicht in de werkprocedures.',
+    field:'aictrl',show:()=>isAI()},
+
+  {id:'aizorg',phase:'ai',type:'c3',auto:true,
+    q:'Heeft de AI directe invloed op zorgbeslissingen voor cliënten?',
+    hint:'Diagnostiek, medicatieadvies, triage, risicoschatting of behandelplanning.',
+    short:'AI met invloed op zorgbeslissingen kan kwalificeren als medisch hulpmiddel. Dit brengt aanvullende regelgeving mee.',
+    deep:'De EU Medical Device Regulation (MDR 2017/745) is van toepassing op software die diagnostische of therapeutische beslissingen ondersteunt (MDCG Guidance 2019-11). Combineer dit met de AI Act (high-risk categorie 5b). Vereisten: CE-markering, conformiteitsbeoordeling, technische documentatie, post-market surveillance.',
+    field:'aizorg',show:()=>isAI(),
+    notices:{ja:{t:'nw',m:'AI met invloed op zorgbeslissingen vereist aanvullende toetsing op MDR en AI Act.'}}},
+];
+
+// ══ NAVIGATION ══
+const vis=()=>S.filter(s=>s.show());
+const idx=id=>vis().findIndex(s=>s.id===id);
+const cs=()=>S.find(s=>s.id===cur);
+
+function saveTxt(){const st=cs();if(st?.type==='text'){const el=document.getElementById('tf_'+st.field);if(el)A[st.field]=el.value.trim()}}
+function goNext(){saveTxt();dir=1;openTip=null;const vs=vis();const i=idx(cur);if(i>=vs.length-1){showReport();return}cur=vs[i+1].id;scroll();render()}
+function goPrev(){saveTxt();dir=-1;openTip=null;const vs=vis();const i=idx(cur);if(i<=0)return;cur=vs[i-1].id;scroll();render()}
+function scroll(){window.scrollTo({top:0,behavior:'smooth'})}
+function pick(f,v,auto){A[f]=v;render();if(auto)setTimeout(goNext,460)}
+function toggleChip(f,v){if(!A[f])A[f]=[];const i=A[f].indexOf(v);if(i>=0)A[f].splice(i,1);else A[f].push(v);render()}
+function toggleTip(id){openTip=openTip===id?null:id;render()}
+function toggleOptTip(key,e){if(e)e.stopPropagation();openOptTip=openOptTip===key?null:key;render()}
+function doRestart(){if(!confirm('Alle antwoorden wissen en opnieuw beginnen?'))return;Object.keys(A).forEach(k=>delete A[k]);cur='welcome';dir=1;openTip=null;document.getElementById('app').style.cssText='';document.getElementById('pipe').style.display='';document.getElementById('emailModal').style.display='none';render()}
+function checkNext(){const st=cs();if(!st?.req)return;const el=document.getElementById('tf_'+st.field);const btn=document.getElementById('nxt');if(el&&btn)btn.disabled=!el.value.trim()}
+
+// ══ PIPELINE ══
+function phSt(phId){const all=S.filter(s=>s.phase===phId);const vsS=all.filter(s=>s.show());const cp=cs()?.phase;const po=PM.map(p=>p.id);const ci=po.indexOf(cp);const ti=po.indexOf(phId);if(vsS.length===0)return'skip';if(phId===cp)return'active';if(ti<ci)return'done';return'future'}
+
+function renderPipe(){
+  const cp=cs()?.phase;
+  if(!cp||cp==='—'){document.getElementById('pipe').style.display='none';return}
+  document.getElementById('pipe').style.display='';
+  let h='';
+  PM.forEach((p,i)=>{
+    const st=phSt(p.id);
+    const vsS=S.filter(s=>s.phase===p.id&&s.show());
+    let dots='';
+    if(vsS.length>1&&(st==='active'||st==='done')){
+      dots=`<div class="pn-dots">${vsS.map(s=>{const id2=s.field&&A[s.field]!==undefined;const ic=s.id===cur;return`<span class="pd${ic?' active':id2?' done':''}"></span>`}).join('')}</div>`
+    }
+    h+=`<div class="pn ${st}"><div class="pc ${st}">${st==='done'?'✓':p.icon}</div><div class="pn-lbl">${p.lbl}</div>${dots}</div>`;
+    if(i<PM.length-1)h+=`<div class="pl ${st==='done'?'done':''}"></div>`;
+  });
+  h+=`<div class="pl"></div><div class="pn future"><div class="pc future">✓</div><div class="pn-lbl">Rapport</div></div>`;
+  document.getElementById('pipeIn').innerHTML=h;
+  const pe=document.getElementById('pipe');const ae=pe.querySelector('.pn.active .pc');
+  if(ae){const pr=pe.getBoundingClientRect();const ar=ae.getBoundingClientRect();pe.scrollLeft+=ar.left-pr.left-pr.width/2+ar.width/2}
+}
+
+// ══ RENDER STEP ══
+function render(){
+  const st=cs();
+  if(!st){showReport();return}
+  if(st.type==='welcome'){renderWelcome();renderPipe();return}
+  renderPipe();
+  const vs=vis();const i=idx(cur);const isLst=i===vs.length-1;
+  document.getElementById('tbC').textContent=`${i} / ${vs.length-1}`;
+
+  // Notice
+  let notice='';
+  if(st.notices&&A[st.field]){const n=st.notices[A[st.field]];if(n){const ic={nw:'⚠️',ns:'⛔',nn:'ℹ️'};notice=`<div class="notice ${n.t}"><span class="nni">${ic[n.t]||'ℹ️'}</span><span>${n.m}</span></div>`}}
+
+  // Tooltip icons
+  const hasS=!!st.short;const hasD=!!st.deep;
+  let tipIcons='';
+  if(hasS||hasD){
+    tipIcons=`<div class="tip-icons">`;
+    if(hasS)tipIcons+=`<span class="tip-ic t${openTip==='t'?' on':''}" onclick="toggleTip('t')" title="Toelichting">ⓘ</span>`;
+    if(hasD)tipIcons+=`<span class="tip-ic d${openTip==='d'?' on':''}" onclick="toggleTip('d')" title="Verdieping">i+</span>`;
+    tipIcons+=`</div>`;
+  }
+  let tipPanel='';
+  if(openTip==='t'&&st.short)tipPanel=`<div class="tip-panel t">${st.short}</div>`;
+  if(openTip==='d'&&st.deep)tipPanel=`<div class="tip-panel d">${st.deep}</div>`;
+
+  // Input
+  let inp='';
+  if(st.type==='text'){
+    const v=A[st.field]||'';
+    inp=`<div class="txt-w"><input class="txt-in" type="text" id="tf_${st.field}" value="${v.replace(/"/g,'&quot;')}" placeholder="${st.ph||''}" oninput="checkNext()" onkeypress="if(event.key==='Enter'){event.preventDefault();goNext()}"></div>`;
+  }
+  if(st.type==='choice'){
+    inp='<div class="choice-g">'+st.opts.map(o=>{
+      const ky_t=st.id+':'+o.v+':t',ky_d=st.id+':'+o.v+':d';
+      const ct='opt-ic t sm'+(openOptTip===ky_t?' on':'');
+      const cd='opt-ic d sm'+(openOptTip===ky_d?' on':'');
+      const ic_t=o.tip?`<span class="${ct}" onclick="toggleOptTip('${ky_t}',event)">ⓘ</span>`:'';
+      const ic_d=o.deep?`<span class="${cd}" onclick="toggleOptTip('${ky_d}',event)">i+</span>`:'';
+      const panel=openOptTip===ky_t&&o.tip?`<div class="tip-panel t sm">${o.tip}</div>`:
+                  openOptTip===ky_d&&o.deep?`<div class="tip-panel d sm">${o.deep}</div>`:'';
+      const sc=A[st.field]===o.v?' sel':'';
+      const auto=!!st.auto;
+      return `<div><button class="ch${sc}" onclick="pick('${st.field}','${o.v}',${auto})"><span class="ch-ico">${o.ico}</span><span><span class="ch-lbl">${o.lbl}</span><span class="ch-sub">${o.sub||''}</span></span><div class="ch-tips">${ic_t}${ic_d}</div></button>${panel}</div>`;
+    }).join('')+'</div>';
+  }
+  if(st.type==='c3'){
+    const v=A[st.field];const ct=st.c3tips||{};
+    const c3ic=val=>{
+      const ky=st.id+':c3:'+val;
+      if(!ct[val])return'';
+      const cls='opt-ic t xs'+(openOptTip===ky?' on':'');
+      return`<span class="${cls}" onclick="toggleOptTip('${ky}',event)">ⓘ</span>`;
+    };
+    const c3panel=()=>{
+      const ky_ja=st.id+':c3:ja',ky_nee=st.id+':c3:nee',ky_wn=st.id+':c3:wn';
+      if(openOptTip===ky_ja&&ct.ja)return`<div class="tip-panel t sm">${ct.ja}</div>`;
+      if(openOptTip===ky_nee&&ct.nee)return`<div class="tip-panel t sm">${ct.nee}</div>`;
+      if(openOptTip===ky_wn&&ct.wn)return`<div class="tip-panel t sm">${ct.wn}</div>`;
+      return'';
+    }
+    inp='<div class="c3r">'+
+      '<button class="c3'+(v==='ja'?' sj':'')+'" onclick="pick(\''+st.field+'\',\'ja\','+!!st.auto+')"><span class="c3m">✓</span><span>Ja</span>'+c3ic('ja')+'</button>'+
+      '<button class="c3'+(v==='nee'?' sn':'')+'" onclick="pick(\''+st.field+'\',\'nee\','+!!st.auto+')"><span class="c3m">✕</span><span>Nee</span>'+c3ic('nee')+'</button>'+
+      '<button class="c3'+(v==='wn'?' sw':'')+'" onclick="pick(\''+st.field+'\',\'wn\','+!!st.auto+')"><span class="c3m">?</span><span>Onbekend</span>'+c3ic('wn')+'</button>'+
+    '</div>'+c3panel();
+  }
+  if(st.type==='sel'){
+    inp='<div class="sel-l">'+st.opts.map(o=>{
+      const ky_t=st.id+':'+o.v+':t',ky_d=st.id+':'+o.v+':d';
+      const ct='opt-ic t'+(openOptTip===ky_t?' on':'');
+      const cd='opt-ic d'+(openOptTip===ky_d?' on':'');
+      const ic_t=o.tip?`<span class="${ct}" onclick="toggleOptTip('${ky_t}',event)">ⓘ</span>`:'';
+      const ic_d=o.deep?`<span class="${cd}" onclick="toggleOptTip('${ky_d}',event)">i+</span>`:'';
+      const panel=openOptTip===ky_t&&o.tip?`<div class="tip-panel t sm">${o.tip}</div>`:
+                  openOptTip===ky_d&&o.deep?`<div class="tip-panel d sm">${o.deep}</div>`:'';
+      const sc=A[st.field]===o.v?' sel':'';
+      const auto=!!st.auto;
+      return `<div><button class="sl${sc}" onclick="pick('${st.field}','${o.v}',${auto})"><span>${o.lbl}</span><div style="display:flex;align-items:center;gap:5px">${ic_t}${ic_d}<span class="sl-a">→</span></div></button>${panel}</div>`;
+    }).join('')+'</div>';
+  }
+  if(st.type==='chips'){
+    const sel=A[st.field]||[];
+    const optPanels=st.opts.map(o=>{
+      const ky=st.id+':'+o.v+':t';
+      return openOptTip===ky&&o.tip?`<div class="tip-panel t sm chip-tp">${o.tip}</div>`:'';
+    }).join('');
+    inp='<p class="chips-h">'+st.hint+'</p><div class="chips">'+
+      st.opts.map(o=>{
+        const ky=st.id+':'+o.v+':t';
+        const cls='opt-ic t xs'+(openOptTip===ky?' on':'');
+        const ic=o.tip?`<span class="${cls}" onclick="toggleOptTip('${ky}',event)">ⓘ</span>`:'';
+        const sc=sel.includes(o.v)?' sel':'';
+        return `<button class="chip${sc}" onclick="toggleChip('${st.field}','${o.v}')">${o.lbl}${ic}</button>`;
+      }).join('')+
+    '</div>'+optPanels;
+  }
+
+  const canNext=st.req?(A[st.field]!==undefined&&(Array.isArray(A[st.field])?A[st.field].length>0:String(A[st.field]).trim().length>0)):true;
+
+  document.getElementById('app').innerHTML=`
+    <div class="inner"><div class="card${dir<0?' back':''}">
+      <div class="step-idx">${st.phase.toUpperCase()} · Stap ${i} van ${vs.length-1}</div>
+      <div class="q-row">
+        <h1 class="q-text">${st.q}</h1>
+        ${tipIcons}
+      </div>
+      ${st.hint&&st.type!=='chips'?`<p class="q-hint">${st.hint}</p>`:''}
+      ${tipPanel}
+      ${notice}
+      ${inp}
+      <div class="nav">
+        <button class="btn-b" onclick="goPrev()" ${i===0?'disabled':''}>←</button>
+        <button class="btn-n${isLst?' last':''}" id="nxt" onclick="goNext()" ${canNext?'':'disabled'}>${isLst?'Rapport genereren →':'Volgende →'}</button>
+        ${!st.req?`<button class="btn-sk" onclick="goNext()">Overslaan</button>`:''}
+      </div>
+    </div></div>`;
+
+  if(st.type==='text')setTimeout(()=>document.getElementById('tf_'+st.field)?.focus(),60);
+}
+
+// ══ WELCOME ══
+function renderWelcome(){
+  document.getElementById('tbC').textContent='';
+  document.getElementById('pipe').style.display='none';
+  document.getElementById('app').innerHTML=`<div class="inner"><div class="card wc">
+    <span class="wc-ico">🛡️</span>
+    <h1 class="wc-t">Situatie<br><span>beoordelen</span></h1>
+    <p class="wc-s">Doorloop een nieuw initiatief of aanpassing stap voor stap. Het resultaat is een concreet rapport met wat er nodig is om goed te handelen.</p>
+    <div class="wc-tags"><span class="wc-tag">± 5–10 minuten</span><span class="wc-tag">Geen specialistische kennis vereist</span><span class="wc-tag">Direct bruikbaar rapport</span></div>
+    <button class="wc-start" onclick="goNext()">Begin →</button>
+  </div></div>`;
+}
+
+// ══ RISK ENGINE ══
+function calcRisk(){
+  const R={privacy:'laag',beveiliging:'laag',leverancier:'laag',contract:'laag',continuiteit:'laag',ai:'laag',patientveiligheid:'laag'};
+  if(hasPG())R.privacy=bump(R.privacy,'middel');
+  if(hasGZ())R.privacy=bump(R.privacy,'hoog');
+  if(A.bz==='ja')R.privacy=bump(R.privacy,'hoog');
+  if(A.pg==='wn')R.privacy=bump(R.privacy,'middel');
+  if(A.dprof==='ja')R.privacy=bump(R.privacy,'hoog');
+  if(A.dmon==='ja')R.privacy=bump(R.privacy,'hoog');
+  if(buiten())R.privacy=bump(R.privacy,'hoog');
+  if(A.aitrain==='ja')R.privacy=bump(R.privacy,'kritiek');
+  if(A.smfa==='nee')R.beveiliging=bump(R.beveiliging,'hoog');
+  if(A.senc==='nee')R.beveiliging=bump(R.beveiliging,'hoog');
+  if(A.smfa==='wn'||A.senc==='wn')R.beveiliging=bump(R.beveiliging,'middel');
+  if(hasSup())R.leverancier=bump(R.leverancier,'middel');
+  if(buiten())R.leverancier=bump(R.leverancier,'hoog');
+  if(A.lcert==='nee')R.leverancier=bump(R.leverancier,'hoog');
+  if(A.ltog==='ja')R.contract=bump(R.contract,'hoog');
+  if(buiten())R.contract=bump(R.contract,'hoog');
+  if(hasSup())R.contract=bump(R.contract,'middel');
+  if(A.scont==='ja')R.continuiteit=bump(R.continuiteit,'hoog');
+  if(isAI()){R.ai=bump(R.ai,'middel');if(A.aicdat==='ja')R.ai=bump(R.ai,'hoog');if(A.aitrain==='ja')R.ai=bump(R.ai,'kritiek');if(A.aizorg==='ja')R.ai=bump(R.ai,'hoog');if(A.aictrl==='nee')R.ai=bump(R.ai,'hoog')}
+  if((A.wie||[]).includes('cliënten'))R.patientveiligheid=bump(R.patientveiligheid,'middel');
+  if(A.aizorg==='ja')R.patientveiligheid=bump(R.patientveiligheid,'hoog');
+  if(A.scont==='ja')R.patientveiligheid=bump(R.patientveiligheid,'middel');
+  return R;
+}
+
+function dpiaStatus(){
+  if(!hasPG())return false;
+  let s=0;
+  if(hasGZ())s+=3;if(A.bz==='ja')s+=2;if(A.dprof==='ja')s+=2;if(A.dmon==='ja')s+=2;
+  if(A.dinno==='ja')s+=2;if(A.dkwets==='ja')s+=2;if(A.kop==='ja')s+=1;
+  if(buiten())s+=1;if(A.aicdat==='ja')s+=2;if(A.aizorg==='ja')s+=2;
+  if(s>=5)return'verplicht';if(s>=3)return'waarschijnlijk';if(s>=1)return'overwegen';
+  return false;
+}
+
+function verdict(R){
+  const v=Object.values(R);
+  if(v.includes('kritiek'))return'rood';if(v.includes('hoog'))return'geel';if(v.includes('middel'))return'geel';return'groen';
+}
+
+function getActions(){
+  const vp=[],aa=[];const dp=dpiaStatus();
+  if(hasPG()){vp.push('Controleer of de verwerking is opgenomen in het verwerkingsregister. Voeg toe of actualiseer de bestaande registratie.');vp.push('Leg de verwerkingsgrondslag schriftelijk vast, inclusief onderbouwing.');aa.push('Informeer betrokkenen conform AVG art. 13/14 (transparantieverplichtingen).')}
+  if(hasGZ()||A.bz==='ja')vp.push('Leg de aanvullende grondslag voor bijzondere persoonsgegevens (AVG art. 9) schriftelijk vast.');
+  if(hasSup()&&A.ltog==='ja')vp.push('Sluit een verwerkersovereenkomst met de leverancier. Dit is wettelijk verplicht (AVG art. 28).');
+  if(hasSup()){vp.push('Voer een leveranciersbeoordeling uit (BIV-classificatie, ENISA 12 maatregelen, productbeveiliging). Gebruik het Eemhart leveranciersbeoordeling-template.');aa.push('Toets het contract aan de Eemhart inkoopvoorwaarden (AIVG 2022 en Module ICT).')}
+  if(dp==='verplicht')vp.push('Voer een DPIA uit vóórdat de verwerking start. Betrek de FG voor begeleiding en eindoordeel.');
+  else if(dp==='waarschijnlijk')vp.push('Laat de FG beoordelen of een DPIA verplicht is. Voer deze bij twijfel uit.');
+  else if(dp==='overwegen')aa.push('Bespreek met de FG of een beknopte privacytoets of pre-DPIA zinvol is.');
+  if(buiten()){vp.push('Zorg voor passende juridische waarborgen voor gegevensdoorgifte buiten de EER (bijv. Standard Contractual Clauses conform AVG art. 46).');vp.push('Beoordeel of voor het betreffende land een adequaatheidsbesluit van de Europese Commissie geldt.')}
+  if(A.smfa==='nee'||A.smfa==='wn')vp.push('Eis dat meervoudige authenticatie (MFA) beschikbaar en verplicht is voor alle gebruikers van dit systeem.');
+  if(A.senc==='nee')vp.push('Implementeer encryptie voor opslag (at rest) en transport (in transit) van persoonsgegevens.');
+  if(A.grond==='wn')vp.push('Bepaal de verwerkingsgrondslag vóór de start. Persoonsgegevens mogen niet worden verwerkt zonder vastgelegde grondslag.');
+  if(isAI()&&A.aicdat==='ja')vp.push('Verifieer of de AI-leverancier persoonsgegevens opslaat of voor training inzet. Stop gebruik totdat dit is vastgesteld.');
+  if(A.aitrain==='ja')vp.push('Staak het gebruik van (gezondheids)gegevens in deze AI-dienst zolang de leverancier deze voor modeltraining inzet.');
+  if(A.aizorg==='ja')vp.push('Zorg dat elke AI-uitkomst voor cliënten door een bevoegde medewerker wordt beoordeeld vóór gebruik (human in the loop).');
+  if(isAI())aa.push('Voer een AI-governance beoordeling uit conform het beleid van Eemhart.');
+  if(A.aizorg==='ja')aa.push('Beoordeel of de AI kwalificeert als medisch hulpmiddel (MDR/IVDR). Raadpleeg hiervoor een specialist.');
+  if(A.scont==='ja')aa.push('Neem SLA-eisen, back-upverplichtingen en herstelplannen (RTO/RPO) op in het contract met de leverancier.');
+  if(A.lcert==='nee')aa.push('Vraag de leverancier om inzage in hun beveiligingsniveau (bijv. ISO 27001 SoA, ISAE 3402, TPM) en leg een auditrecht vast.');
+  return{vp,aa};
+}
+
+function getEscalations(){
+  const dp=dpiaStatus();const R=calcRisk();const esc=[];
+  if(dp==='verplicht'||dp==='waarschijnlijk')esc.push({cls:'e-fg',ic:'🔒',role:'FG (Functionaris Gegevensbescherming)',why:'DPIA-beoordeling vereist'});
+  if(hasGZ()||A.bz==='ja')esc.push({cls:'e-fg',ic:'🔒',role:'Privacy Officer / FG',why:'Bijzondere persoonsgegevens aanwezig'});
+  if(R.beveiliging==='hoog'||R.beveiliging==='kritiek')esc.push({cls:'e-ci',ic:'🛡️',role:'CISO / Security Officer',why:'Beveiligingsrisico vereist security assessment'});
+  if(hasSup())esc.push({cls:'e-in',ic:'📋',role:'Inkoop / Contractbeheer',why:'Leveranciersbeoordeling en contractreview'});
+  if(buiten()||A.ltog==='ja')esc.push({cls:'e-ju',ic:'⚖️',role:'Juridische Zaken',why:'Contractuele toetsing verwerkersovereenkomst en/of internationale doorgifte'});
+  if(isAI()&&A.aizorg==='ja')esc.push({cls:'e-di',ic:'🏥',role:'Directie / Medisch adviseur',why:'AI met invloed op zorgbeslissingen'});
+  if(isAI())esc.push({cls:'e-fg',ic:'🤖',role:'FG + CISO (AI-governance)',why:'AI-toepassing met persoonsgegevens'});
+  const seen=new Set();return esc.filter(e=>{if(seen.has(e.role))return false;seen.add(e.role);return true});
+}
+
+function openQs(){
+  const q=[];
+  if(A.pg==='wn')q.push('Worden er persoonsgegevens verwerkt? Laat dit verifiëren door de Privacy Officer.');
+  if(A.grond==='wn')q.push('Wat is de juridische grondslag voor de verwerking van persoonsgegevens?');
+  if(A.ops==='wn')q.push('Waar worden de gegevens precies opgeslagen (land, cloudprovider)?');
+  if(A.leer==='wn')q.push('Is de leverancier of zijn infrastructuur buiten de EER gevestigd?');
+  if(A.lcert==='wn')q.push('Beschikt de leverancier over ISO 27001, NEN 7510 of vergelijkbare certificering?');
+  if(A.smfa==='wn')q.push('Is meervoudige authenticatie (MFA) beschikbaar en actief?');
+  if(A.senc==='wn')q.push('Worden gegevens versleuteld opgeslagen en verstuurd?');
+  if(A.aitrain==='wn')q.push('Gebruikt de AI-leverancier ingevoerde gegevens voor modeltraining?');
+  return q;
+}
+
+// ══ EMAIL ══
+function buildTextSummary(risks,dp,acts){
+  const vm={groen:'Groen licht',geel:'Toegestaan onder voorwaarden',rood:'Nog niet gereed voor gebruik'};
+  const v=verdict(risks);
+  let t=`SITUATIEBEOORDELING EEMHART\n`;
+  t+=`${'='.repeat(40)}\n`;
+  t+=`Situatie: ${A.naam||'—'}\n`;
+  t+=`Datum: ${new Date().toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'})}\n`;
+  t+=`Eigenaar: ${A.eig||'—'} | Afdeling: ${A.afd||'—'}\n\n`;
+  t+=`OORDEEL: ${vm[v]}\n\n`;
+  if(dp){const dm={verplicht:'VERPLICHT',waarschijnlijk:'WAARSCHIJNLIJK VEREIST',overwegen:'AANBEVOLEN'};t+=`DPIA: ${dm[dp]}\n\n`}
+  t+=`VERPLICHTE ACTIES (${acts.vp.length}):\n`;
+  acts.vp.forEach((a,i)=>t+=`${i+1}. ${a}\n`);
+  t+=`\nAANBEVOLEN ACTIES (${acts.aa.length}):\n`;
+  acts.aa.forEach((a,i)=>t+=`${i+1}. ${a}\n`);
+  t+=`\n${'='.repeat(40)}\nGenod via Eemhart Situatiebeoordeling tool`;
+  return t;
+}
+
+function showEmailModal(){
+  const risks=calcRisk();const dp=dpiaStatus();const acts=getActions();const v=verdict(risks);
+  const summary=buildTextSummary(risks,dp,acts);
+  const vm={groen:'✅ Groen licht',geel:'⚠️ Toegestaan onder voorwaarden',rood:'🛑 Nog niet gereed'};
+  const modal=document.getElementById('emailModal');
+  modal.style.display='flex';
+  modal.className='modal-bg';
+  modal.innerHTML=`<div class="modal">
+    <div class="modal-t">📧 Rapport versturen</div>
+    <div class="modal-s">Voer een e-mailadres in om het rapport te openen in uw e-mailprogramma. Het volledige rapport kunt u als PDF opslaan via de afdrukknop.</div>
+    <input class="modal-in" type="email" id="mailTo" placeholder="naam@eemhart.nl" autocomplete="email">
+    <div class="modal-summary">
+      <strong>${A.naam||'Naamloze beoordeling'}</strong> · ${vm[v]}<br><br>
+      ${acts.vp.length?`<strong>Verplicht (${acts.vp.length}):</strong> ${acts.vp[0]}${acts.vp.length>1?` en nog ${acts.vp.length-1} andere actie${acts.vp.length>2?'s':''}...`:''}<br>`:''}
+      ${dp?`<strong>DPIA:</strong> ${dp==='verplicht'?'verplicht':dp==='waarschijnlijk'?'waarschijnlijk vereist':'aanbevolen te overwegen'}`:''}
+    </div>
+    <div class="modal-btns">
+      <button class="btn-modal-s" onclick="closeMailModal()">Annuleren</button>
+      <button class="btn-modal-p" onclick="doSendMail('${encodeURIComponent(summary).replace(/'/g,"\\'")}','${encodeURIComponent('Compliance rapport: '+(A.naam||'Situatiebeoordeling')).replace(/'/g,"\\'")}')">Open in e-mailprogramma →</button>
+    </div>
+    <div class="modal-note">Tip: voor het volledige rapport inclusief risicoanalyse en audittrail, gebruik de knop "Afdrukken / PDF" en sla op als PDF-bijlage.</div>
+  </div>`;
+}
+
+function doSendMail(encBody,encSubj){
+  const to=document.getElementById('mailTo')?.value||'';
+  const href=`mailto:${to}?subject=${encSubj}&body=${encBody}`;
+  window.location.href=href;
+  setTimeout(closeMailModal,800);
+}
+function closeMailModal(){document.getElementById('emailModal').style.display='none'}
+
+// ══ LEVERANCIERSBEOORDELING BLOK ══
+function levBlok(){
+  if(!hasSup())return'';
+  const hasVok=A.ltog==='ja'||A.ltog==='wn';
+  return`<div class="lev-blok">
+    <div class="lev-head">
+      <div style="font-size:22px">🔍</div>
+      <div>
+        <div class="lev-head-t">Leveranciersbeoordeling — vervolgstap</div>
+        <div class="lev-head-s">Het Eemhart leveranciersbeoordeling-template doorloopt vier stappen om het risicoprofiel van de leverancier te bepalen.</div>
+      </div>
+    </div>
+    <div class="lev-steps">
+      <div class="lev-step"><div class="ls-num">1</div><div class="ls-t">Intake</div><div class="ls-s">Leverancier vult algemene gegevens in. Eemhart beschrijft product en datagebruik.</div></div>
+      <div class="lev-step"><div class="ls-num">2</div><div class="ls-t">BIV-classificatie</div><div class="ls-s">Beschikbaarheid, Integriteit en Vertrouwelijkheid per impact­dimensie beoordelen.</div></div>
+      <div class="lev-step"><div class="ls-num">3</div><div class="ls-t">Deel A — Leverancier</div><div class="ls-s">Leverancier beantwoordt 12 ENISA-maatregelen over eigen organisatiebeveiliging.</div></div>
+      <div class="lev-step"><div class="ls-num">4</div><div class="ls-t">Deel B — Product</div><div class="ls-s">Productbeveiliging: toegang, patchbeheer, encryptie, logging en incident response.</div></div>
+    </div>
+    <div class="lev-body">
+      <div style="font-size:12px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--mt);margin-bottom:12px">Op te vragen bij de leverancier</div>
+      <div class="lev-items">
+        ${hasVok?`<div class="lev-item"><span class="lev-item-ic">📋</span><div><strong>Verwerkersovereenkomst (VOK)</strong>Wettelijk verplicht (AVG art. 28). Gebruik het model van de Brancheorganisaties Zorg.</div></div>`:''}
+        <div class="lev-item"><span class="lev-item-ic">🏅</span><div><strong>ISO 27001 / NEN 7510 certificaat</strong>Inclusief verklaring van toepasselijkheid (SoA). Jaarlijks verifiëren.</div></div>
+        <div class="lev-item"><span class="lev-item-ic">📍</span><div><strong>Opslaglocatie bevestiging</strong>Land en cloudprovider van de data. Subverwerkers vermelden.</div></div>
+        <div class="lev-item"><span class="lev-item-ic">🔐</span><div><strong>MFA-bevestiging</strong>Is MFA beschikbaar en standaard ingesteld? (Leveranciersbeoordeling vraag LT.04)</div></div>
+        <div class="lev-item"><span class="lev-item-ic">🚨</span><div><strong>Incidentprocedure</strong>Meldtermijn bij datalek: leverancier informeert Eemhart binnen 24 uur.</div></div>
+        <div class="lev-item"><span class="lev-item-ic">🚪</span><div><strong>Exitprocedure en dataretentie</strong>Hoe en wanneer worden gegevens teruggegeven of vernietigd bij contractbeëindiging?</div></div>
+      </div>
+      <div style="font-size:12px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--mt);margin:16px 0 10px">De 12 ENISA-maatregelen (Deel A checklist)</div>
+      <div class="enisa-grid">
+        <div class="enisa-pill">Beleid & governance</div>
+        <div class="enisa-pill">Incidentrespons</div>
+        <div class="enisa-pill">Bewustzijn personeel</div>
+        <div class="enisa-pill">Wachtwoordbeleid & MFA</div>
+        <div class="enisa-pill">Patchmanagement</div>
+        <div class="enisa-pill">Anti-malware</div>
+        <div class="enisa-pill">E-mail & webfiltering</div>
+        <div class="enisa-pill">Encryptie</div>
+        <div class="enisa-pill">Veilig werken op afstand</div>
+        <div class="enisa-pill">Netwerksegmentatie</div>
+        <div class="enisa-pill">Back-upbeheer</div>
+        <div class="enisa-pill">Controle & monitoring</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ══ REPORT ══
+function showReport(){
+  document.getElementById('progFill')&&(document.getElementById('progFill').style.width='100%');
+  document.getElementById('tbC').textContent='Rapport';
+  renderPipe();
+  const risks=calcRisk();const dp=dpiaStatus();const acts=getActions();const escs=getEscalations();const oqs=openQs();const v=verdict(risks);
+  const now=new Date().toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'});
+  const vm={groen:{cls:'vg',ico:'✅',title:'Voorzichtig groen licht',desc:'De situatie lijkt in orde op basis van de verstrekte informatie. Zorg dat de aanbevolen acties worden uitgevoerd en vastgelegd.'},geel:{cls:'vy',ico:'⚠️',title:'Toegestaan onder voorwaarden',desc:'Er zijn verplichte stappen nodig voordat gestart kan worden. Voer de actielijst hieronder uit.'},rood:{cls:'vr',ico:'🛑',title:'Nog niet gereed voor gebruik',desc:'Er zijn kritieke bevindingen. Start niet voordat alle verplichte acties zijn afgerond en geaccordeerd.'}};
+  const vd=vm[v];
+  const dpLabel=dp?{verplicht:{cls:'dp-v',txt:'DPIA verplicht — betrek de FG vóór de start.'},waarschijnlijk:{cls:'dp-w',txt:'DPIA waarschijnlijk vereist — laat de FG dit beoordelen.'},overwegen:{cls:'dp-o',txt:'Privacytoets aanbevolen — bespreek met de Privacy Officer.'}}[dp]:null;
+  const rLbls={privacy:'Privacy',beveiliging:'Beveiliging',leverancier:'Leverancier',contract:'Contract',continuiteit:'Continuïteit',ai:'AI',patientveiligheid:'Patiëntveiligheid'};
+  const docs=[];
+  if(hasSup()&&A.ltog==='ja')docs.push({t:'Verwerkersovereenkomst (VOK)',c:'dt-r'});
+  if(dp==='verplicht'||dp==='waarschijnlijk')docs.push({t:'DPIA',c:'dt-r'});
+  if(hasSup())docs.push({t:'Leveranciersbeoordeling',c:'dt-y'});
+  if(hasSup())docs.push({t:'Contractreview (AIVG / Module ICT)',c:'dt-y'});
+  if(buiten())docs.push({t:"Standard Contractual Clauses (SCC's)",c:'dt-r'});
+  if(isAI())docs.push({t:'AI-governance beoordeling',c:'dt-y'});
+  if(hasPG())docs.push({t:'Verwerkingsregister (bijwerken)',c:'dt-n'});
+  if(A.scont==='ja')docs.push({t:'Continuïteits- en herstelplan',c:'dt-y'});
+  const audRows=S.filter(s=>s.field&&A[s.field]!==undefined).map(s=>`<tr><td>${s.phase}</td><td>${s.q}</td><td>${fmtA(A[s.field])}</td></tr>`).join('');
+
+  document.getElementById('app').style.cssText='display:block;padding-top:118px';
+  document.getElementById('app').innerHTML=`<div class="rpt">
+    <div class="rpt-head">
+      <div class="rpt-super">Situatiebeoordeling · Eemhart</div>
+      <div class="rpt-title">${A.naam||'Naamloze beoordeling'}</div>
+      <div class="rpt-meta">${A.type==='nieuw'?'Nieuw initiatief':'Aanpassing'}${A.afd?' · '+A.afd:''}${A.eig?' · '+A.eig:''} · ${now}</div>
+    </div>
+
+    <div class="verdict ${vd.cls}">
+      <div class="v-ico">${vd.ico}</div>
+      <div><div class="v-title">${vd.title}</div><div class="v-desc">${vd.desc}</div></div>
+    </div>
+
+    ${dpLabel?`<div class="dpia-row ${dpLabel.cls}">📋 <strong>DPIA:</strong>&nbsp;${dpLabel.txt}</div>`:''}
+
+    <div class="rsec">
+      <div class="rsec-t">Risicoanalyse per categorie</div>
+      <div class="risk-g">${Object.entries(risks).map(([k,lv])=>'<div class="rk '+lv+'"><span class="rk-lv">'+lv+'</span><span class="rk-cat">'+(rLbls[k]||k)+'</span></div>').join('')}</div>
+    </div>
+
+    <div class="rsec">
+      <div class="rsec-t">Verplichte acties</div>
+      ${acts.vp.length?`<div class="act-l">${acts.vp.map(a=>`<div class="act act-v"><span class="bdg bv">Verplicht</span><span>${a}</span></div>`).join('')}</div>`:`<p style="color:var(--g);font-size:14px;font-weight:500">Geen verplichte acties op basis van de huidige gegevens.</p>`}
+    </div>
+
+    <div class="rsec">
+      <div class="rsec-t">Aanbevolen acties</div>
+      ${acts.aa.length?`<div class="act-l">${acts.aa.map(a=>`<div class="act act-a"><span class="bdg ba">Aanbevolen</span><span>${a}</span></div>`).join('')}</div>`:`<p style="color:var(--mt);font-size:14px">Geen aanvullende aanbevelingen.</p>`}
+    </div>
+
+    ${levBlok()}
+
+    <div class="rsec">
+      <div class="rsec-t">Benodigde documenten</div>
+      <div class="doc-tags">${docs.map(d=>`<span class="dt ${d.c}">${d.t}</span>`).join('')}${!docs.length?'<span style="color:var(--mt);font-size:14px">Geen documenten geïdentificeerd.</span>':''}</div>
+    </div>
+
+    <div class="rsec">
+      <div class="rsec-t">Te betrekken functionarissen</div>
+      ${escs.length?`<div class="esc-l">${escs.map(e=>`<div class="esc ${e.cls}"><span class="e-ic">${e.ic}</span><div><span class="e-role">${e.role}</span><span class="e-why">${e.why}</span></div></div>`).join('')}</div>`:`<p style="color:var(--g);font-size:14px;font-weight:500">Geen escalaties noodzakelijk.</p>`}
+    </div>
+
+    ${oqs.length?`<div class="rsec"><div class="rsec-t">Nog uit te zoeken</div><div class="oq-l">${oqs.map(q=>`<div class="oq">🔍 ${q}</div>`).join('')}</div></div>`:''}
+
+    <div class="rsec">
+      <div class="rsec-t">Samenvatting situatie</div>
+      <div class="sum-g">
+        <div class="sum-box"><div class="sum-lbl">Initiatief</div>
+          <div class="sum-row"><strong>Naam:</strong> ${A.naam||'—'}</div>
+          <div class="sum-row"><strong>Type:</strong> ${A.type==='nieuw'?'Nieuw':'Aanpassing'}</div>
+          <div class="sum-row"><strong>Doel:</strong> ${A.doel||'—'}</div>
+          <div class="sum-row"><strong>Initiatiefnemer:</strong> ${A.eig||'—'}</div>
+          <div class="sum-row"><strong>Afdeling:</strong> ${A.afd||'—'}</div>
+        </div>
+        <div class="sum-box"><div class="sum-lbl">Gegevensprofiel</div>
+          <div class="sum-row"><strong>Persoonsgegevens:</strong> ${fmtA(A.pg)}</div>
+          <div class="sum-row"><strong>Gezondheidsgegevens:</strong> ${fmtA(A.gz)}</div>
+          <div class="sum-row"><strong>Betrokkenen:</strong> ${fmtA(A.wie)}</div>
+          <div class="sum-row"><strong>Opslaglocatie:</strong> ${A.ops||'—'}</div>
+          <div class="sum-row"><strong>AI ingezet:</strong> ${fmtA(A.useai)}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rsec">
+      <div class="rsec-t">Audittrail — alle antwoorden</div>
+      <table class="aud-t"><thead><tr><th>Onderdeel</th><th>Vraag</th><th>Antwoord</th></tr></thead>
+      <tbody>${audRows||'<tr><td colspan="3" style="color:var(--mt)">Geen antwoorden geregistreerd.</td></tr>'}</tbody></table>
+    </div>
+
+    <div class="rpt-foot">
+      <span class="rpt-foot-note">Eemhart Situatiebeoordeling · ${now}</span>
+      <div class="rpt-foot-btns">
+        <button class="btn-rst" onclick="doRestart()">↺ Nieuwe beoordeling</button>
+        <button class="btn-mail" onclick="showEmailModal()">✉ Mailen</button>
+        <button class="btn-print" onclick="window.print()">Afdrukken / PDF</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+document.addEventListener('DOMContentLoaded',render);
+</script>
+</body>
+</html>
